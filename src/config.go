@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"math"
-	"reflect"
-	"strings"
+
+	"github.com/reecepbcups/localinterchain/src/util"
+
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 )
 
 type MainConfig struct {
-	Chains []Chain `json:"chains"`
+	Chains  []Chain `json:"chains"`
+	Relayer Relayer `json:"relayer"`
 }
 
 type Chain struct {
@@ -23,14 +26,11 @@ type Chain struct {
 	Debugging      bool   `json:"debugging"`
 
 	// Required
-	Name    string `json:"name"`
-	ChainID string `json:"chain-id"`
+	Name            string   `json:"name"`
+	ChainID         string   `json:"chain-id"`
+	EncodingOptions []string `json:"encoding-options"`
 
-	DockerImage struct {
-		Repository string `json:"repository"`
-		Version    string `json:"version"`
-		UidGid     string `json:"uid-gid"`
-	} `json:"docker-image"`
+	DockerImage DockerImage `json:"docker-image"`
 
 	GasPrices     string  `json:"gas-prices"`
 	GasAdjustment float64 `json:"gas-adjustment"`
@@ -41,11 +41,24 @@ type Chain struct {
 	Genesis       Genesis `json:"genesis"`
 }
 
+type Relayer struct {
+	DockerImage  DockerImage `json:"docker-image"`
+	StartupFlags []string    `json:"startup-flags"`
+}
+
+type DockerImage struct {
+	Repository string `json:"repository"`
+	Version    string `json:"version"`
+	UidGid     string `json:"uid-gid"`
+}
+
 type Genesis struct {
-	Modify []struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
-	} `json:"modify"`
+	// Only apart of my fork for now.
+	Modify []cosmos.GenesisKV `json:"modify"` // 'key' & 'val' in the config
+	// Modify []struct {
+	// 	Key   string `json:"key"`
+	// 	Value string `json:"value"`
+	// } `json:"modify"`
 	Accounts []struct {
 		Name     string `json:"name"`
 		Amount   string `json:"amount"`
@@ -54,99 +67,92 @@ type Genesis struct {
 	} `json:"accounts"`
 }
 
-type LogOutput struct {
-	ChainID     string `json:"chain-id"`
-	ChainName   string `json:"chain-name"`
-	RPCAddress  string `json:"rpc-address"`
-	GRPCAddress string `json:"grpc-address"`
-	IBCPath     string `json:"ibc-path"`
-}
-
-func LoadConfig() (*MainConfig, error) {
-	// read from current dir "config.json". Allow user ability for multiple configs
-	bytes, err := ioutil.ReadFile("config.json")
+func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
+	// Load Chains
+	bytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	var config MainConfig
 	err = json.Unmarshal(bytes, &config)
 	if err != nil {
 		return nil, err
 	}
 
-	// Defaults
-	for i := range config.Chains {
-		chain := &config.Chains[i]
-
-		if chain.BlocksTTL <= 0 {
-			chain.BlocksTTL = math.MaxInt32
-		}
-
-		if chain.ChainType == "" {
-			chain.ChainType = "cosmos"
-		}
-
-		if chain.CoinType == 0 {
-			chain.CoinType = 118
-		}
-
-		if chain.DockerImage.UidGid == "" {
-			chain.DockerImage.UidGid = "1025:1025"
-		}
-
-		// TODO: Error here instead?
-		if chain.Binary == "" {
-			chain.Binary = "junod"
-		}
-		if chain.Denom == "" {
-			chain.Denom = "ujuno"
-		}
-		if chain.Bech32Prefix == "" {
-			chain.Bech32Prefix = "juno"
-		}
-
-		if chain.TrustingPeriod == "" {
-			chain.TrustingPeriod = "112h"
-		}
-	}
-
-	// Replace env variables
-	for i := range config.Chains {
-		chain := config.Chains[i]
-		replaceStringValues(&chain, "%DENOM%", chain.Denom)
-
-		config.Chains[i] = chain
-	}
-
-	return &config, nil
+	return config, nil
 }
 
-func replaceStringValues(data interface{}, oldStr, replacement string) {
-	replaceStringFields(reflect.ValueOf(data), oldStr, replacement)
+func LoadConfig() (*MainConfig, error) {
+	var config *MainConfig
+	config, _ = loadConfig(config, "../configs/chains.json")
+	config, _ = loadConfig(config, "../configs/relayer.json")
+
+	chains := config.Chains
+	relayer := config.Relayer
+
+	for i := range chains {
+		chain := chains[i]
+		chain.setChainDefaults()
+		// Replace all string instances of %DENOM% with the chain's denom.
+		// Even in nested structs, slices/arrays, etc.
+		util.ReplaceStringValues(&chain, "%DENOM%", chain.Denom)
+		chains[i] = chain
+	}
+
+	config.Relayer = relayer.setRelayerDefaults()
+
+	return config, nil
 }
 
-func replaceStringFields(value reflect.Value, oldStr, replacement string) {
-	switch value.Kind() {
-	case reflect.Ptr:
-		if value.IsNil() {
-			return
-		}
-		replaceStringFields(value.Elem(), oldStr, replacement)
-	case reflect.Struct:
-		for i := 0; i < value.NumField(); i++ {
-			field := value.Field(i)
-			replaceStringFields(field, oldStr, replacement)
-		}
-	case reflect.Slice, reflect.Array:
-		for i := 0; i < value.Len(); i++ {
-			replaceStringFields(value.Index(i), oldStr, replacement)
-		}
-	case reflect.String:
-		currentStr := value.String()
-		if strings.Contains(currentStr, oldStr) {
-			updatedStr := strings.Replace(currentStr, oldStr, replacement, -1)
-			value.SetString(updatedStr)
-		}
+func (chain *Chain) setChainDefaults() {
+	if chain.BlocksTTL <= 0 {
+		chain.BlocksTTL = math.MaxInt32
 	}
+
+	if chain.ChainType == "" {
+		chain.ChainType = "cosmos"
+	}
+
+	if chain.CoinType == 0 {
+		chain.CoinType = 118
+	}
+
+	if chain.DockerImage.UidGid == "" {
+		chain.DockerImage.UidGid = "1025:1025"
+	}
+
+	if chain.NumberVals == 0 {
+		chain.NumberVals = 1
+	}
+
+	if chain.TrustingPeriod == "" {
+		chain.TrustingPeriod = "112h"
+	}
+
+	// TODO: Error here instead?
+	if chain.Binary == "" {
+		chain.Binary = "junod"
+	}
+	if chain.Denom == "" {
+		chain.Denom = "ujuno"
+	}
+	if chain.Bech32Prefix == "" {
+		chain.Bech32Prefix = "juno"
+	}
+}
+
+func (r Relayer) setRelayerDefaults() Relayer {
+	if r.DockerImage.Repository == "" {
+		r.DockerImage.Repository = "ghcr.io/cosmos/relayer"
+	}
+
+	if r.DockerImage.Version == "" {
+		r.DockerImage.Version = "latest"
+	}
+
+	if r.DockerImage.UidGid == "" {
+		r.DockerImage.UidGid = "100:1000"
+	}
+
+	return r
 }

@@ -15,19 +15,20 @@
             "blocks-ttl": -1,
             "ibc-path": "juno-ibc-1",
             "debugging": true,
+            "encoding-options": ["juno"],
             "genesis": {
                 "modify": [
                     {
                         "key": "app_state.gov.voting_params.voting_period",
-                        "value": "15s"
+                        "val": "15s"
                     },
                     {
                         "key": "app_state.gov.deposit_params.max_deposit_period",
-                        "value": "15s"
+                        "val": "15s"
                     },
                     {
                         "key": "app_state.gov.deposit_params.min_deposit.0.denom",
-                        "value": "%DENOM%"
+                        "val": "%DENOM%"
                     }
                 ],     
                 "accounts": [
@@ -54,17 +55,10 @@
                 "repository": "ghcr.io/cosmoscontracts/juno-e2e",
                 "version": "v14.1.0"
             },
+            "encoding-options": ["juno"],
             "gas-prices": "0%DENOM%",
-            "gas-adjustment": 2.0,
-            "number-vals": 1,
-            "number-node": 0,
-            "blocks-ttl": -1,
-            "ibc-path": "juno-ibc-1",
-            "debugging": true,
-            "genesis": {
-                "modify": [],     
-                "accounts": []
-            }
+            "gas-adjustment": 2.0,          
+            "ibc-path": "juno-ibc-1"            
         }
     ]
 }
