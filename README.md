@@ -2,9 +2,86 @@
 
 A simple way to config and run IBC local chain testing environments using [Strangelove's InterchainTest](https://github.com/strangelove-ventures/interchaintest)
 
-**This will eventually get phased out and brought into the ICTest repo directly.** Just doing it here for easy of creation & for a future simple public archive.
+**This will eventually get phased out and brought into the ICTest repo directly.** Just doing it here for ease of creation & for a future simple public archive.
 
-## Goal
+## Running
 
-- An Easy configurable environment for running a local IBC node(s).
-- Give the ability to easily IBC between multiple chains.
+- *(optional)* Edit `./configs/relayer.json`
+- Copy: `cp ./configs/chains.json ./configs/my_chains.json`
+- Run: `CHAIN_CONFIG=my_chains.json make run`
+
+*(Not using CHAIN_CONFIG= will default to `./configs/chains.json`)*
+
+## Helpful Tips
+
+- After starting the chain(s), you can read the `./configs/logs.json` file to get useful information. This includes the chain's id, name, RPC address, and more.
+
+- 'ibc-path' should only be set if you are using 2+ chains. If you are using 1 chain, you can leave it blank.
+
+- You can use `%DENOM%` anywhere in the chain's config to use the `denom` line. This is useful for gas-prices, genesis accounts, etc.
+
+- Configuration's have set defaults. The minimum you need to run a single chain is the following
+```json
+{
+    "name": "otherjuno",            
+    "chain-id": "localjuno-2",
+    "denom": "ujuno",
+    "docker-image": {
+        "repository": "ghcr.io/cosmoscontracts/juno-e2e",
+        "version": "v14.1.0"
+    },    
+    "gas-prices": "0%DENOM%",
+    "gas-adjustment": 2.0,           
+}
+```
+
+---
+
+## Base Chain Template
+
+Here is a base chain template with every feature the configuration accepts. Accounts has extra data to make it simpler for scripting and read from the file directly.
+
+```json
+{
+    "name": "juno",            
+    "chain-id": "localjuno-1",
+    "denom": "ujuno",
+    "docker-image": {
+        "repository": "ghcr.io/cosmoscontracts/juno-e2e",
+        "version": "v14.1.0",
+        "uid-gid": "1000:1000"
+    },
+    "gas-prices": "0%DENOM%",
+    "gas-adjustment": 2.0,
+    "number-vals": 1,
+    "number-node": 0,
+    "blocks-ttl": -1,
+    "ibc-path": "juno-ibc-1",
+    "debugging": true,
+    "encoding-options": ["juno"],
+    "genesis": {
+        "modify": [
+            {
+                "key": "app_state.gov.voting_params.voting_period",
+                "val": "15s"
+            },
+            {
+                "key": "app_state.gov.deposit_params.max_deposit_period",
+                "val": "15s"
+            },
+            {
+                "key": "app_state.gov.deposit_params.min_deposit.0.denom",
+                "val": "%DENOM%"
+            }
+        ],     
+        "accounts": [
+            {
+                "name": "acc0",
+                "address": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
+                "amount": "10000000%DENOM%",
+                "mnemonic": "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry"
+            }
+        ]                
+    }
+},
+```
