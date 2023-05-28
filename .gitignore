@@ -1,2 +1,4 @@
 # Ignore custom chain configs. Ex: `CHAIN_CONFIG=mycustom_chains.json make run`
 configs/*_chains.json
+
+configs/logs.json

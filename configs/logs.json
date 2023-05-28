@@ -1,9 +1,0 @@
-[
-  {
-    "chain-id": "localjuno-1",
-    "chain-name": "localjuno-1",
-    "rpc-address": "http://localhost:38829",
-    "grpc-address": "localhost:34917",
-    "ibc-path": ""
-  }
-]

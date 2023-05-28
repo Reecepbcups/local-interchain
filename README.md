@@ -7,20 +7,36 @@ A simple way to config and run IBC local chain testing environments using [Stran
 ## Running
 
 - *(optional)* Edit `./configs/relayer.json`
-- Copy: `cp ./configs/chains.json ./configs/my_chains.json`
-- Run: `CHAIN_CONFIG=my_chains.json make run`
+- Copy: `cp ./configs/chains.json ./configs/mytest1_chains.json`
+- Run: `CHAIN_CONFIG=mytest1_chains.json make run`
 
-*(Not using CHAIN_CONFIG= will default to `./configs/chains.json`)*
+*(Not using 'CHAIN_CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
+
+---
 
 ## Helpful Tips
 
 - After starting the chain(s), you can read the `./configs/logs.json` file to get useful information. This includes the chain's id, name, RPC address, and more.
 
+```json
+// ./configs/logs.json
+[
+  {
+    "chain-id": "exampleid-1",
+    "chain-name": "example",
+    "rpc-address": "http://localhost:38829",
+    "grpc-address": "localhost:34917",
+    "ibc-path": ""
+  }
+]
+```
+
 - 'ibc-path' should only be set if you are using 2+ chains. If you are using 1 chain, you can leave it blank.
 
-- You can use `%DENOM%` anywhere in the chain's config to use the `denom` line. This is useful for gas-prices, genesis accounts, etc.
+- You can use `%DENOM%` anywhere in the chain's config to use the `denom` line. This is useful for gas prices, Genesis accounts, etc.
 
 - Configuration's have set defaults. The minimum you need to run a single chain is the following
+
 ```json
 {
     "name": "otherjuno",            
@@ -39,7 +55,7 @@ A simple way to config and run IBC local chain testing environments using [Stran
 
 ## Base Chain Template
 
-Here is a base chain template with every feature the configuration accepts. Accounts has extra data to make it simpler for scripting and read from the file directly.
+Here is a base chain template with every feature the configuration accepts. Accounts have extra data to make it simpler for scripting and read from the file directly.
 
 ```json
 {
