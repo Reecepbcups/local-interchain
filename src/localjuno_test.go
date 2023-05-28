@@ -123,11 +123,8 @@ func TestLocalChains(t *testing.T) {
 	ctx := context.Background()
 	client, network := interchaintest.DockerSetup(t)
 
-	// setup a relayer if we have IBC paths to use
+	// setup a relayer if we have IBC paths to use, then use a relayer
 	if len(ibcpaths) > 0 {
-		// relayer
-		// Get a relayer instance
-
 		rlyCfg := config.Relayer
 
 		relayerType, relayerName := ibc.CosmosRly, "relay"
@@ -178,34 +175,7 @@ func TestLocalChains(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// wait for blocks
-	// var outputLogs []LogOutput
-	// var longestTTLChain *cosmos.CosmosChain
-	// ttlWait := 0
-	// for idx, chain := range config.Chains {
-	// 	chainObj := chains[idx].(*cosmos.CosmosChain)
-	// 	t.Logf("\n\n\n\nWaiting for %d blocks on chain %s", chain.BlocksTTL, chainObj.Config().ChainID)
-
-	// 	v := LogOutput{
-	// 		// TODO: Rest API Address?
-	// 		ChainID:     chainObj.Config().ChainID,
-	// 		ChainName:   chainObj.Config().Name,
-	// 		RPCAddress:  chainObj.GetHostRPCAddress(),
-	// 		GRPCAddress: chainObj.GetHostGRPCAddress(),
-	// 		IBCPath:     chain.IBCPath,
-	// 	}
-
-	// 	if chain.BlocksTTL > ttlWait {
-	// 		ttlWait = chain.BlocksTTL
-	// 		longestTTLChain = chainObj
-	// 	}
-
-	// 	outputLogs = append(outputLogs, v)
-	// }
-	// dump output logs to file
-	// bz, _ := json.MarshalIndent(outputLogs, "", "  ")
-	// WriteRunningChains([]byte(bz))
-
+	// Save to logs.json file for runtime chain information.
 	longestTTLChain, ttlWait := DumpChainsInfoToLogs(t, config, chains)
 
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
