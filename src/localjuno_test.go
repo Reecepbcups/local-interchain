@@ -2,15 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"strconv"
-	"strings"
 	"testing"
 
-	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -21,63 +15,14 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	// params
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	feesharetypes "github.com/CosmosContracts/juno/v15/x/feeshare/types"
-	tokenfactorytypes "github.com/CosmosContracts/juno/v15/x/tokenfactory/types"
 )
-
-// TODO: Allow for capabilities to then call many functions. Ex: cosmwasm/cw to register wasm types.
-// This way we can support Osmosis, Stargaze, and Juno chains without trying to register the other specific modules?
-// Or test if we can just register all custom module interfaces even if the chain does not support.
-func junoEncoding() *sdktestutil.TestEncodingConfig {
-	cfg := cosmos.DefaultEncoding()
-
-	// register custom types
-	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	feesharetypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	tokenfactorytypes.RegisterInterfaces(cfg.InterfaceRegistry)
-
-	return &cfg
-}
-
-func modifyGenesis(genesis Genesis) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-		}
-
-		for idx, values := range genesis.Modify {
-			path := strings.Split(values.Key, ".")
-
-			result := make([]interface{}, len(path))
-			for i, component := range path {
-				if v, err := strconv.Atoi(component); err == nil {
-					result[i] = v
-				} else {
-					result[i] = component
-				}
-			}
-
-			if err := dyno.Set(g, values.Value, result...); err != nil {
-				return nil, fmt.Errorf("failed to set value (index:%d) in genesis json: %w", idx, err)
-			}
-		}
-
-		out, err := json.Marshal(g)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-		}
-		return out, nil
-	}
-}
 
 // TestLocalChains runs local IBC chain(s) easily.
 func TestLocalChains(t *testing.T) {
 	config, err := LoadConfig()
 	require.NoError(t, err)
+
+	WriteRunningChains([]byte("[]"))
 
 	// ibc-path-name -> index of []cosmos.CosmosChain
 	ibcpaths := make(map[string][]int)
@@ -100,9 +45,9 @@ func TestLocalChains(t *testing.T) {
 			GasAdjustment:       cfg.GasAdjustment,
 			TrustingPeriod:      cfg.TrustingPeriod,
 			NoHostMount:         false,
-			ModifyGenesis:       modifyGenesis(cfg.Genesis),
+			ModifyGenesis:       cosmos.ModifyGenesis(cfg.Genesis.Modify),
 			ConfigFileOverrides: nil,
-			EncodingConfig:      junoEncoding(),
+			EncodingConfig:      NewEncoding(cfg.EncodingOptions),
 		}
 
 		chainConfig.Images = []ibc.DockerImage{{
@@ -121,7 +66,7 @@ func TestLocalChains(t *testing.T) {
 		})
 
 		if cfg.IBCPath != "" {
-			fmt.Println("IBC Path:", cfg.IBCPath, "Chain:", cfg.Name)
+			t.Log("IBC Path:", cfg.IBCPath, "Chain:", cfg.Name)
 			ibcpaths[cfg.IBCPath] = append(ibcpaths[cfg.IBCPath], idx)
 		}
 	}
@@ -178,17 +123,20 @@ func TestLocalChains(t *testing.T) {
 	ctx := context.Background()
 	client, network := interchaintest.DockerSetup(t)
 
-	// setup a relayer if we have IBC paths to use
+	// setup a relayer if we have IBC paths to use, then use a relayer
 	if len(ibcpaths) > 0 {
-		// relayer
-		// Get a relayer instance
+		rlyCfg := config.Relayer
+
 		relayerType, relayerName := ibc.CosmosRly, "relay"
 		rf := interchaintest.NewBuiltinRelayerFactory(
 			relayerType,
 			zaptest.NewLogger(t),
-			// TODO: put into the config
-			interchaintestrelayer.CustomDockerImage("ghcr.io/cosmos/relayer", "latest", "100:1000"),
-			interchaintestrelayer.StartupFlags("--processor", "events", "--block-history", "100"),
+			interchaintestrelayer.CustomDockerImage(
+				rlyCfg.DockerImage.Repository,
+				rlyCfg.DockerImage.Version,
+				rlyCfg.DockerImage.UidGid,
+			),
+			interchaintestrelayer.StartupFlags(rlyCfg.StartupFlags...),
 		)
 
 		r := rf.Build(t, client, network)
@@ -213,7 +161,6 @@ func TestLocalChains(t *testing.T) {
 				}
 			}
 
-			fmt.Print(interLink)
 			ic = ic.AddLink(interLink)
 		}
 	}
@@ -228,34 +175,8 @@ func TestLocalChains(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// wait for blocks
-	var outputLogs []LogOutput
-	var longestTTLChain *cosmos.CosmosChain
-	ttlWait := 0
-	for idx, chain := range config.Chains {
-		chainObj := chains[idx].(*cosmos.CosmosChain)
-		t.Logf("\n\n\n\nWaiting for %d blocks on chain %s", chain.BlocksTTL, chainObj.Config().ChainID)
-
-		v := LogOutput{
-			// TODO: Rest Address?
-			ChainID:     chainObj.Config().ChainID,
-			ChainName:   chainObj.Config().Name,
-			RPCAddress:  chainObj.GetHostRPCAddress(),
-			GRPCAddress: chainObj.GetHostGRPCAddress(),
-			IBCPath:     chain.IBCPath,
-		}
-
-		if chain.BlocksTTL > ttlWait {
-			ttlWait = chain.BlocksTTL
-			longestTTLChain = chainObj
-		}
-
-		outputLogs = append(outputLogs, v)
-	}
-
-	// dump output logs to file
-	bz, _ := json.MarshalIndent(outputLogs, "", "  ")
-	ioutil.WriteFile("logs.json", []byte(bz), 0644)
+	// Save to logs.json file for runtime chain information.
+	longestTTLChain, ttlWait := DumpChainsInfoToLogs(t, config, chains)
 
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
 	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
@@ -264,6 +185,6 @@ func TestLocalChains(t *testing.T) {
 
 	t.Cleanup(func() {
 		_ = ic.Close()
-		// TODO: also delete logs.json file? or a file which is tmnp
+		WriteRunningChains([]byte("[]"))
 	})
 }
