@@ -8,6 +8,6 @@ import (
 
 // go run main.go config.go
 func main() {
-	config, _ := LoadConfig()
+	config, _ := LoadConfig("chains.json")
 	fmt.Println(config)
 }

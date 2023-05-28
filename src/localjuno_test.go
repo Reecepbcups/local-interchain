@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
@@ -19,7 +20,8 @@ import (
 
 // TestLocalChains runs local IBC chain(s) easily.
 func TestLocalChains(t *testing.T) {
-	config, err := LoadConfig()
+	chainCfgFile := os.Getenv("CHAIN_CONFIG")
+	config, err := LoadConfig(chainCfgFile)
 	require.NoError(t, err)
 
 	WriteRunningChains([]byte("[]"))

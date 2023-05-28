@@ -82,9 +82,18 @@ func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
 	return config, nil
 }
 
-func LoadConfig() (*MainConfig, error) {
+func LoadConfig(chainCfgFile string) (*MainConfig, error) {
 	var config *MainConfig
-	config, _ = loadConfig(config, "../configs/chains.json")
+
+	filePath := "../configs/chains.json"
+	if chainCfgFile != "" {
+		filePath = "../configs/" + chainCfgFile
+	}
+
+	config, err := loadConfig(config, filePath)
+	if err != nil {
+		return nil, err
+	}
 	config, _ = loadConfig(config, "../configs/relayer.json")
 
 	chains := config.Chains
