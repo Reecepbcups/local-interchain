@@ -108,8 +108,8 @@ func TestLocalChains(t *testing.T) {
 		}
 	}
 
-	// Starts a non blocking REST server for actioning the chain.
-	// TODO: Kill this later.
+	// Starts a non blocking REST server to take action on the chain.
+	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint.)
 	go StartNonBlockingServer(ctx, config, vals)
 
 	connections := GetChannelConnections(ctx, ibcpaths, chains, ic, relayer, eRep)
