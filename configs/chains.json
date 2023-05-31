@@ -4,17 +4,23 @@
             "name": "juno",            
             "chain-id": "localjuno-1",
             "denom": "ujuno",
+            "binary": "junod",
+            "bech32-prefix": "juno",
             "docker-image": {
                 "repository": "ghcr.io/cosmoscontracts/juno-e2e",
                 "version": "v14.1.0"
             },
+            "use-new-genesis-command": false,
             "gas-prices": "0%DENOM%",
+            "chain-type": "cosmos",
+            "coin-type": 118,
+            "trusting-period": "112h",
             "gas-adjustment": 2.0,
             "number-vals": 1,
             "number-node": 0,
             "blocks-ttl": -1,
             "ibc-path": "juno-ibc-1",
-            "debugging": true,
+            "debugging": true,            
             "encoding-options": ["juno"],
             "genesis": {
                 "modify": [
@@ -48,7 +54,7 @@
             }
         },
         {
-            "name": "otherjuno",            
+            "name": "juno",
             "chain-id": "localjuno-2",
             "denom": "ujuno",
             "docker-image": {
@@ -59,6 +65,19 @@
             "gas-prices": "0%DENOM%",
             "gas-adjustment": 2.0,          
             "ibc-path": "juno-ibc-1"            
+        },
+        {
+            "name": "gaia",
+            "chain-id": "localcosmos-1",
+            "denom": "uatom",
+            "binary": "gaiad",
+            "bech32-prefix": "cosmos",
+            "docker-image": {                
+                "version": "v9.1.0"
+            },        
+            "gas-prices": "0.01%DENOM%",
+            "gas-adjustment": 2.0,
+            "ibc-path": ""
         }
     ]
 }

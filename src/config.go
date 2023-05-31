@@ -2,12 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math"
 
 	"github.com/reecepbcups/localinterchain/src/util"
 
+	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
 type MainConfig struct {
@@ -17,18 +20,19 @@ type MainConfig struct {
 
 type Chain struct {
 	// ibc chain config (optional)
-	ChainType      string `json:"chain-type"`
-	CoinType       int    `json:"coin-type"`
-	Binary         string `json:"binary"`
-	Bech32Prefix   string `json:"bech32-prefix"`
-	Denom          string `json:"denom"`
-	TrustingPeriod string `json:"trusting-period"`
-	Debugging      bool   `json:"debugging"`
+	ChainType            string   `json:"chain-type"`
+	CoinType             int      `json:"coin-type"`
+	Binary               string   `json:"binary"`
+	Bech32Prefix         string   `json:"bech32-prefix"`
+	Denom                string   `json:"denom"`
+	TrustingPeriod       string   `json:"trusting-period"`
+	Debugging            bool     `json:"debugging"`
+	EncodingOptions      []string `json:"encoding-options"`
+	UseNewGenesisCommand bool     `json:"use-new-genesis-command"`
 
 	// Required
-	Name            string   `json:"name"`
-	ChainID         string   `json:"chain-id"`
-	EncodingOptions []string `json:"encoding-options"`
+	Name    string `json:"name"`
+	ChainID string `json:"chain-id"`
 
 	DockerImage DockerImage `json:"docker-image"`
 
@@ -111,6 +115,51 @@ func LoadConfig(chainCfgFile string) (*MainConfig, error) {
 	config.Relayer = relayer.setRelayerDefaults()
 
 	return config, nil
+}
+
+func CreateChainConfigs(cfg Chain) (ibc.ChainConfig, *interchaintest.ChainSpec) {
+	chainCfg := ibc.ChainConfig{
+		Type:                   cfg.ChainType,
+		Name:                   cfg.Name,
+		ChainID:                cfg.ChainID,
+		Bin:                    cfg.Binary,
+		Bech32Prefix:           cfg.Bech32Prefix,
+		Denom:                  cfg.Denom,
+		CoinType:               fmt.Sprintf("%d", cfg.CoinType),
+		GasPrices:              cfg.GasPrices,
+		GasAdjustment:          cfg.GasAdjustment,
+		TrustingPeriod:         cfg.TrustingPeriod,
+		NoHostMount:            false,
+		ModifyGenesis:          cosmos.ModifyGenesis(cfg.Genesis.Modify),
+		ConfigFileOverrides:    nil,
+		EncodingConfig:         NewEncoding(cfg.EncodingOptions),
+		UsingNewGenesisCommand: cfg.UseNewGenesisCommand,
+	}
+
+	if cfg.DockerImage.Version == "" {
+		panic("DockerImage.Version is required in your config")
+	}
+
+	if cfg.DockerImage.Repository != "" {
+		chainCfg.Images = []ibc.DockerImage{
+			{
+				Repository: cfg.DockerImage.Repository,
+				Version:    cfg.DockerImage.Version,
+				UidGid:     cfg.DockerImage.UidGid,
+			},
+		}
+	}
+
+	chainSpecs := &interchaintest.ChainSpec{
+		Name:          cfg.Name,
+		Version:       cfg.DockerImage.Version,
+		ChainName:     cfg.ChainID,
+		ChainConfig:   chainCfg,
+		NumValidators: &cfg.NumberVals,
+		NumFullNodes:  &cfg.NumberNode,
+	}
+
+	return chainCfg, chainSpecs
 }
 
 func (chain *Chain) setChainDefaults() {
