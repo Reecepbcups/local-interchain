@@ -65,6 +65,7 @@ func TestLocalChains(t *testing.T) {
 	client, network := interchaintest.DockerSetup(t)
 
 	// setup a relayer if we have IBC paths to use, then use a relayer
+	var relayer ibc.Relayer
 	if len(ibcpaths) > 0 {
 		rlyCfg := config.Relayer
 
@@ -80,11 +81,11 @@ func TestLocalChains(t *testing.T) {
 			interchaintestrelayer.StartupFlags(rlyCfg.StartupFlags...),
 		)
 
-		r := rf.Build(t, client, network)
-		ic = ic.AddRelayer(r, relayerName)
+		relayer = rf.Build(t, client, network)
+		ic = ic.AddRelayer(relayer, relayerName)
 
 		// Add links between chains
-		LinkIBCPaths(ibcpaths, chains, ic, r)
+		LinkIBCPaths(ibcpaths, chains, ic, relayer)
 	}
 
 	// Build all chains & begin.
@@ -97,8 +98,10 @@ func TestLocalChains(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	connections := GetChannelConnections(ctx, ibcpaths, chains, ic, relayer, eRep)
+
 	// Save to logs.json file for runtime chain information.
-	longestTTLChain, ttlWait := DumpChainsInfoToLogs(t, config, chains)
+	longestTTLChain, ttlWait := DumpChainsInfoToLogs(t, config, chains, connections)
 
 	AddGenesisKeysToKeyring(ctx, config, chains)
 

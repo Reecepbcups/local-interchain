@@ -9,6 +9,11 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
+type MainLogs struct {
+	Chains   []LogOutput  `json:"chains"`
+	Channels []IBCChannel `json:"ibc-channels"`
+}
+
 type LogOutput struct {
 	ChainID     string `json:"chain-id"`
 	ChainName   string `json:"chain-name"`
@@ -23,19 +28,23 @@ func WriteRunningChains(bz []byte) {
 	_ = ioutil.WriteFile(filename, bz, 0644)
 }
 
-func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain) (*cosmos.CosmosChain, int) {
+func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
 	// This may be un-needed.
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
 
-	var outputLogs []LogOutput
+	mainLogs := MainLogs{
+		Chains:   []LogOutput{},
+		Channels: connections,
+	}
 
 	// Iterate chain config & get the ibc chain's to save data to logs.
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 		t.Logf("\n\n\n\nWaiting for %d blocks on chain %s", chain.BlocksTTL, chainObj.Config().ChainID)
 
-		v := LogOutput{
+		// TODO: save another log for relayer info instead?
+		log := LogOutput{
 			// TODO: Rest API Address?
 			ChainID:     chainObj.Config().ChainID,
 			ChainName:   chainObj.Config().Name,
@@ -49,11 +58,11 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain) 
 			longestTTLChain = chainObj
 		}
 
-		outputLogs = append(outputLogs, v)
+		mainLogs.Chains = append(mainLogs.Chains, log)
 	}
 
 	// dump output logs to file
-	bz, _ := json.MarshalIndent(outputLogs, "", "  ")
+	bz, _ := json.MarshalIndent(mainLogs, "", "  ")
 	WriteRunningChains([]byte(bz))
 
 	return longestTTLChain, ttlWait
