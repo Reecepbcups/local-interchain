@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	interchaintestrelayer "github.com/strangelove-ventures/interchaintest/v7/relayer"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
@@ -97,6 +98,19 @@ func TestLocalChains(t *testing.T) {
 		// BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 	})
 	require.NoError(t, err)
+
+	// keys as well?
+	vals := make(map[string]*cosmos.ChainNode)
+	for _, chain := range chains {
+		if cosmosChain, ok := chain.(*cosmos.CosmosChain); ok {
+			chainID := cosmosChain.Config().ChainID
+			vals[chainID] = cosmosChain.Validators[0]
+		}
+	}
+
+	// Starts a non blocking REST server to take action on the chain.
+	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint.)
+	go StartNonBlockingServer(ctx, config, vals)
 
 	connections := GetChannelConnections(ctx, ibcpaths, chains, ic, relayer, eRep)
 
