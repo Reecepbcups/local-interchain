@@ -13,13 +13,12 @@ type MainLogs struct {
 	Chains   []LogOutput  `json:"chains"`
 	Channels []IBCChannel `json:"ibc-channels"`
 }
-
 type LogOutput struct {
-	ChainID     string `json:"chain-id"`
-	ChainName   string `json:"chain-name"`
-	RPCAddress  string `json:"rpc-address"`
-	GRPCAddress string `json:"grpc-address"`
-	IBCPath     string `json:"ibc-path"`
+	ChainID     string   `json:"chain-id"`
+	ChainName   string   `json:"chain-name"`
+	RPCAddress  string   `json:"rpc-address"`
+	GRPCAddress string   `json:"grpc-address"`
+	IBCPath     []string `json:"ibc-paths"`
 }
 
 const filename = "../configs/logs.json"
@@ -38,6 +37,10 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 		Channels: connections,
 	}
 
+	// iterate through connections in groups of 2
+	// then get the 1st and 2nd channel id, their path, and the chain id
+	// link these together in an easy to query way
+
 	// Iterate chain config & get the ibc chain's to save data to logs.
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
@@ -50,7 +53,7 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 			ChainName:   chainObj.Config().Name,
 			RPCAddress:  chainObj.GetHostRPCAddress(),
 			GRPCAddress: chainObj.GetHostGRPCAddress(),
-			IBCPath:     chain.IBCPath,
+			IBCPath:     chain.IBCPaths,
 		}
 
 		if chain.BlocksTTL > ttlWait {

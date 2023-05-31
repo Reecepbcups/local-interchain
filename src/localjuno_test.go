@@ -35,9 +35,12 @@ func TestLocalChains(t *testing.T) {
 		_, chainSpec := CreateChainConfigs(cfg)
 		chainSpecs = append(chainSpecs, chainSpec)
 
-		if cfg.IBCPath != "" {
-			t.Log("IBC Path:", cfg.IBCPath, "Chain:", cfg.Name)
-			ibcpaths[cfg.IBCPath] = append(ibcpaths[cfg.IBCPath], idx)
+		if len(cfg.IBCPaths) > 0 {
+			t.Log("IBC Path:", cfg.IBCPaths, "Chain:", cfg.Name)
+
+			for _, path := range cfg.IBCPaths {
+				ibcpaths[path] = append(ibcpaths[path], idx)
+			}
 		}
 	}
 

@@ -60,6 +60,7 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request, ctx context.Conte
 	// replace env variables
 	ah.Cmd = strings.ReplaceAll(ah.Cmd, "%RPC%", fmt.Sprintf("tcp://%s:26657", vals[chainId].HostName()))
 	ah.Cmd = strings.ReplaceAll(ah.Cmd, "%CHAIN_ID%", ah.ChainId)
+	ah.Cmd = strings.ReplaceAll(ah.Cmd, "%HOME%", vals[chainId].HomeDir())
 
 	cmd := strings.Split(ah.Cmd, " ")
 
@@ -72,6 +73,8 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request, ctx context.Conte
 		stdout, stderr, err = (vals[chainId]).ExecQuery(ctx, cmd...)
 	case "b", "bin", "binary":
 		stdout, stderr, err = (vals[chainId]).ExecBin(ctx, cmd...)
+	case "e", "exec", "execute":
+		stdout, stderr, err = (vals[chainId]).Exec(ctx, cmd, []string{})
 	}
 
 	if len(stdout) > 0 {
