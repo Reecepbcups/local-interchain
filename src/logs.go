@@ -37,14 +37,9 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 		Channels: connections,
 	}
 
-	// iterate through connections in groups of 2
-	// then get the 1st and 2nd channel id, their path, and the chain id
-	// link these together in an easy to query way
-
 	// Iterate chain config & get the ibc chain's to save data to logs.
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
-		t.Logf("\n\n\n\nWaiting for %d blocks on chain %s", chain.BlocksTTL, chainObj.Config().ChainID)
 
 		// TODO: save another log for relayer info instead?
 		log := LogOutput{
@@ -64,7 +59,6 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 		mainLogs.Chains = append(mainLogs.Chains, log)
 	}
 
-	// dump output logs to file
 	bz, _ := json.MarshalIndent(mainLogs, "", "  ")
 	WriteRunningChains([]byte(bz))
 

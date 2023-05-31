@@ -115,14 +115,19 @@ func TestLocalChains(t *testing.T) {
 	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint.)
 	go StartNonBlockingServer(ctx, config, vals)
 
+	AddGenesisKeysToKeyring(ctx, config, chains)
+
+	// run commands for each server after startup. Iterate chain configs
+	PostStartupCommands(ctx, t, config, chains)
+
 	connections := GetChannelConnections(ctx, ibcpaths, chains, ic, relayer, eRep)
 
 	// Save to logs.json file for runtime chain information.
 	longestTTLChain, ttlWait := DumpChainsInfoToLogs(t, config, chains, connections)
 
-	AddGenesisKeysToKeyring(ctx, config, chains)
-
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
+	t.Logf("\n\nWaiting for %d blocks on chain %s", ttlWait, longestTTLChain.Config().ChainID)
+
 	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
 		t.Fatal(err)
 	}
