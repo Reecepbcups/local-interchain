@@ -9,13 +9,17 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
+type MainLogs struct {
+	Chains   []LogOutput  `json:"chains"`
+	Channels []IBCChannel `json:"ibc-channels"`
+}
+
 type LogOutput struct {
-	ChainID     string       `json:"chain-id"`
-	ChainName   string       `json:"chain-name"`
-	RPCAddress  string       `json:"rpc-address"`
-	GRPCAddress string       `json:"grpc-address"`
-	IBCPath     string       `json:"ibc-path"`
-	Channels    []IBCChannel `json:"channels"`
+	ChainID     string `json:"chain-id"`
+	ChainName   string `json:"chain-name"`
+	RPCAddress  string `json:"rpc-address"`
+	GRPCAddress string `json:"grpc-address"`
+	IBCPath     string `json:"ibc-path"`
 }
 
 const filename = "../configs/logs.json"
@@ -29,30 +33,24 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
 
-	var outputLogs []LogOutput
+	mainLogs := MainLogs{
+		Chains:   []LogOutput{},
+		Channels: connections,
+	}
 
 	// Iterate chain config & get the ibc chain's to save data to logs.
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 		t.Logf("\n\n\n\nWaiting for %d blocks on chain %s", chain.BlocksTTL, chainObj.Config().ChainID)
 
-		// TODO: See if there is a better way to display this in the logs.
-		cs := []IBCChannel{}
-		for _, conn := range connections {
-			if conn.ChainID == chainObj.Config().ChainID {
-				cs = append(cs, conn)
-			}
-		}
-
 		// TODO: save another log for relayer info instead?
-		v := LogOutput{
+		log := LogOutput{
 			// TODO: Rest API Address?
 			ChainID:     chainObj.Config().ChainID,
 			ChainName:   chainObj.Config().Name,
 			RPCAddress:  chainObj.GetHostRPCAddress(),
 			GRPCAddress: chainObj.GetHostGRPCAddress(),
 			IBCPath:     chain.IBCPath,
-			Channels:    cs,
 		}
 
 		if chain.BlocksTTL > ttlWait {
@@ -60,11 +58,11 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 			longestTTLChain = chainObj
 		}
 
-		outputLogs = append(outputLogs, v)
+		mainLogs.Chains = append(mainLogs.Chains, log)
 	}
 
 	// dump output logs to file
-	bz, _ := json.MarshalIndent(outputLogs, "", "  ")
+	bz, _ := json.MarshalIndent(mainLogs, "", "  ")
 	WriteRunningChains([]byte(bz))
 
 	return longestTTLChain, ttlWait
