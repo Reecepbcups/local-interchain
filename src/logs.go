@@ -10,11 +10,12 @@ import (
 )
 
 type LogOutput struct {
-	ChainID     string `json:"chain-id"`
-	ChainName   string `json:"chain-name"`
-	RPCAddress  string `json:"rpc-address"`
-	GRPCAddress string `json:"grpc-address"`
-	IBCPath     string `json:"ibc-path"`
+	ChainID     string       `json:"chain-id"`
+	ChainName   string       `json:"chain-name"`
+	RPCAddress  string       `json:"rpc-address"`
+	GRPCAddress string       `json:"grpc-address"`
+	IBCPath     string       `json:"ibc-path"`
+	Channels    []IBCChannel `json:"channels"`
 }
 
 const filename = "../configs/logs.json"
@@ -23,7 +24,7 @@ func WriteRunningChains(bz []byte) {
 	_ = ioutil.WriteFile(filename, bz, 0644)
 }
 
-func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain) (*cosmos.CosmosChain, int) {
+func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
 	// This may be un-needed.
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
@@ -35,6 +36,15 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain) 
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 		t.Logf("\n\n\n\nWaiting for %d blocks on chain %s", chain.BlocksTTL, chainObj.Config().ChainID)
 
+		// TODO: See if there is a better way to display this in the logs.
+		cs := []IBCChannel{}
+		for _, conn := range connections {
+			if conn.ChainID == chainObj.Config().ChainID {
+				cs = append(cs, conn)
+			}
+		}
+
+		// TODO: save another log for relayer info instead?
 		v := LogOutput{
 			// TODO: Rest API Address?
 			ChainID:     chainObj.Config().ChainID,
@@ -42,6 +52,7 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain) 
 			RPCAddress:  chainObj.GetHostRPCAddress(),
 			GRPCAddress: chainObj.GetHostGRPCAddress(),
 			IBCPath:     chain.IBCPath,
+			Channels:    cs,
 		}
 
 		if chain.BlocksTTL > ttlWait {
