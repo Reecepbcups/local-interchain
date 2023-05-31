@@ -2,20 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	interchaintestrelayer "github.com/strangelove-ventures/interchaintest/v7/relayer"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // TestLocalChains runs local IBC chain(s) easily.
@@ -35,37 +31,8 @@ func TestLocalChains(t *testing.T) {
 			t.Logf("[%d] %v", idx, cfg)
 		}
 
-		chainConfig := ibc.ChainConfig{
-			Type:                cfg.ChainType,
-			Name:                cfg.Name,
-			ChainID:             cfg.ChainID,
-			Bin:                 cfg.Binary,
-			Bech32Prefix:        cfg.Bech32Prefix,
-			Denom:               cfg.Denom,
-			CoinType:            fmt.Sprintf("%d", cfg.CoinType),
-			GasPrices:           cfg.GasPrices,
-			GasAdjustment:       cfg.GasAdjustment,
-			TrustingPeriod:      cfg.TrustingPeriod,
-			NoHostMount:         false,
-			ModifyGenesis:       cosmos.ModifyGenesis(cfg.Genesis.Modify),
-			ConfigFileOverrides: nil,
-			EncodingConfig:      NewEncoding(cfg.EncodingOptions),
-		}
-
-		chainConfig.Images = []ibc.DockerImage{{
-			Repository: cfg.DockerImage.Repository,
-			Version:    cfg.DockerImage.Version,
-			UidGid:     cfg.DockerImage.UidGid,
-		}}
-
-		chainSpecs = append(chainSpecs, &interchaintest.ChainSpec{
-			Name:          cfg.Name,
-			Version:       cfg.DockerImage.Version,
-			ChainName:     cfg.ChainID,
-			ChainConfig:   chainConfig,
-			NumValidators: &cfg.NumberVals,
-			NumFullNodes:  &cfg.NumberNode,
-		})
+		_, chainSpec := CreateChainConfigs(cfg)
+		chainSpecs = append(chainSpecs, chainSpec)
 
 		if cfg.IBCPath != "" {
 			t.Log("IBC Path:", cfg.IBCPath, "Chain:", cfg.Name)
@@ -73,14 +40,8 @@ func TestLocalChains(t *testing.T) {
 		}
 	}
 
-	// ensure that none of ibcpaths values are length > 2
-	for k, v := range ibcpaths {
-		if len(v) == 1 {
-			t.Fatalf("ibc path '%s' has only 1 chain", k)
-		}
-		if len(v) > 2 {
-			t.Fatalf("ibc path '%s' has more than 2 chains", k)
-		}
+	if err := VerifyIBCPaths(ibcpaths); err != nil {
+		t.Fatal(err)
 	}
 
 	// Create chain factory for all the chains
@@ -90,34 +51,12 @@ func TestLocalChains(t *testing.T) {
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
-	// iterate all chains chain's configs & setup accounts
-	additionalWallets := make(map[ibc.Chain][]ibc.WalletAmount)
-	for idx, chain := range config.Chains {
-		chainObj := chains[idx].(*cosmos.CosmosChain)
-
-		for _, acc := range chain.Genesis.Accounts {
-			amount, err := sdk.ParseCoinsNormalized(acc.Amount)
-			if err != nil {
-				panic(err)
-			}
-
-			for _, coin := range amount {
-				additionalWallets[chainObj] = append(additionalWallets[chainObj], ibc.WalletAmount{
-					Address: acc.Address,
-					Amount:  coin.Amount.Int64(),
-					Denom:   coin.Denom,
-				})
-			}
-		}
-	}
-
 	// Create a new Interchain object which describes the chains, relayers, and IBC connections we want to use
 	ic := interchaintest.NewInterchain()
 	for _, chain := range chains {
-		// fmt.Println("adding chain...", chain.Config().Name)
 		ic = ic.AddChain(chain)
 	}
-	ic.AdditionalGenesisWallets = additionalWallets
+	ic.AdditionalGenesisWallets = SetupGenesisWallets(config, chains)
 
 	// Base setup
 	rep := testreporter.NewNopReporter()
@@ -142,29 +81,10 @@ func TestLocalChains(t *testing.T) {
 		)
 
 		r := rf.Build(t, client, network)
-
 		ic = ic.AddRelayer(r, relayerName)
 
 		// Add links between chains
-		for path, c := range ibcpaths {
-			interLink := interchaintest.InterchainLink{
-				Chain1:  nil,
-				Chain2:  nil,
-				Path:    path,
-				Relayer: r,
-			}
-
-			// set chain1 & chain2
-			for idx, chain := range c {
-				if idx == 0 {
-					interLink.Chain1 = chains[chain]
-				} else {
-					interLink.Chain2 = chains[chain]
-				}
-			}
-
-			ic = ic.AddLink(interLink)
-		}
+		LinkIBCPaths(ibcpaths, chains, ic, r)
 	}
 
 	// Build all chains & begin.
@@ -179,6 +99,8 @@ func TestLocalChains(t *testing.T) {
 
 	// Save to logs.json file for runtime chain information.
 	longestTTLChain, ttlWait := DumpChainsInfoToLogs(t, config, chains)
+
+	AddGenesisKeysToKeyring(ctx, config, chains)
 
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
 	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
