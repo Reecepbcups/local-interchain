@@ -53,7 +53,20 @@ def query_request(cmd: str, asJSON: bool = False) -> str | dict:
     return r.text
 
 
+def docker_command(cmd: str, asJSON: bool = False) -> str | dict:
+    data = Request("localjuno-1", "exec", cmd).to_dict()
+    r = httpx.post(URL, json=data, headers={"Content-Type": "application/json"})
+
+    if asJSON:
+        return json.loads(r.text)
+
+    return r.text
+
+
 # Test
+
+res = docker_command("ls -la")
+print(res)
 
 res = bin_request(
     "tx decode ClMKUQobL2Nvc21vcy5nb3YudjFiZXRhMS5Nc2dWb3RlEjIIpwISK2p1bm8xZGM3a2MyZzVrZ2wycmdmZHllZGZ6MDl1YTlwZWo1eDNsODc3ZzcYARJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECxjGMmYp4MlxxfFWi9x4u+jOleJVde3Cru+HnxAVUJmgSBAoCCH8YNBISCgwKBXVqdW5vEgMyMDQQofwEGkDPE4dCQ4zUh6LIB9wqNXDBx+nMKtg0tEGiIYEH8xlw4H8dDQQStgAe6xFO7I/oYVSWwa2d9qUjs9qyB8r+V0Gy",

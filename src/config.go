@@ -37,13 +37,13 @@ type Chain struct {
 
 	DockerImage DockerImage `json:"docker-image"`
 
-	GasPrices     string  `json:"gas-prices"`
-	GasAdjustment float64 `json:"gas-adjustment"`
-	NumberVals    int     `json:"number-vals"`
-	NumberNode    int     `json:"number-node"`
-	BlocksTTL     int     `json:"blocks-ttl"`
-	IBCPath       string  `json:"ibc-path"`
-	Genesis       Genesis `json:"genesis"`
+	GasPrices     string   `json:"gas-prices"`
+	GasAdjustment float64  `json:"gas-adjustment"`
+	NumberVals    int      `json:"number-vals"`
+	NumberNode    int      `json:"number-node"`
+	BlocksTTL     int      `json:"blocks-ttl"`
+	IBCPaths      []string `json:"ibc-paths"`
+	Genesis       Genesis  `json:"genesis"`
 }
 
 type Relayer struct {

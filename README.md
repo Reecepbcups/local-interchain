@@ -26,7 +26,7 @@ A simple way to config and run IBC local chain testing environments using [Stran
     "chain-name": "example",
     "rpc-address": "http://localhost:38829",
     "grpc-address": "localhost:34917",
-    "ibc-path": ""
+    "ibc-paths": []
   }
 ]
 ```
@@ -39,11 +39,10 @@ A simple way to config and run IBC local chain testing environments using [Stran
 
 ```json
 {
-    "name": "otherjuno",            
+    "name": "juno",            
     "chain-id": "localjuno-2",
     "denom": "ujuno",
-    "docker-image": {
-        "repository": "ghcr.io/cosmoscontracts/juno-e2e",
+    "docker-image": {        
         "version": "v14.1.0"
     },    
     "gas-prices": "0%DENOM%",
@@ -62,17 +61,23 @@ Here is a base chain template with every feature the configuration accepts. Acco
     "name": "juno",            
     "chain-id": "localjuno-1",
     "denom": "ujuno",
+    "binary": "junod",
+    "bech32-prefix": "juno",
     "docker-image": {
         "repository": "ghcr.io/cosmoscontracts/juno-e2e",
         "version": "v14.1.0",
         "uid-gid": "1000:1000"
     },
+    "chain-type": "cosmos",
+    "coin-type": 118,
+    "trusting-period": "112h",
     "gas-prices": "0%DENOM%",
     "gas-adjustment": 2.0,
     "number-vals": 1,
     "number-node": 0,
     "blocks-ttl": -1,
-    "ibc-path": "juno-ibc-1",
+    "use-new-genesis-command": false,
+    "ibc-paths": []"juno-ibc-1"],
     "debugging": true,
     "encoding-options": ["juno"],
     "genesis": {
