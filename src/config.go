@@ -14,8 +14,9 @@ import (
 )
 
 type MainConfig struct {
-	Chains  []Chain `json:"chains"`
-	Relayer Relayer `json:"relayer"`
+	Chains  []Chain    `json:"chains"`
+	Relayer Relayer    `json:"relayer"`
+	Server  RestServer `json:"server"`
 }
 
 type Chain struct {
@@ -48,6 +49,11 @@ type Chain struct {
 type Relayer struct {
 	DockerImage  DockerImage `json:"docker-image"`
 	StartupFlags []string    `json:"startup-flags"`
+}
+
+type RestServer struct {
+	Host string `json:"host"`
+	Port string `json:"port"`
 }
 
 type DockerImage struct {
@@ -99,6 +105,8 @@ func LoadConfig(chainCfgFile string) (*MainConfig, error) {
 		return nil, err
 	}
 	config, _ = loadConfig(config, "../configs/relayer.json")
+
+	config, _ = loadConfig(config, "../configs/server.json")
 
 	chains := config.Chains
 	relayer := config.Relayer
