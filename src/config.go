@@ -64,17 +64,18 @@ type DockerImage struct {
 
 type Genesis struct {
 	// Only apart of my fork for now.
-	Modify []cosmos.GenesisKV `json:"modify"` // 'key' & 'val' in the config
-	// Modify []struct {
-	// 	Key   string `json:"key"`
-	// 	Value string `json:"value"`
-	// } `json:"modify"`
+	Modify []cosmos.GenesisKV `json:"modify"` // 'key' & 'val' in the config.
+
 	Accounts []struct {
 		Name     string `json:"name"`
 		Amount   string `json:"amount"`
 		Address  string `json:"address"`
 		Mnemonic string `json:"mnemonic"`
 	} `json:"accounts"`
+
+	// A list of commands which run after chains are good to go.
+	// May need to move out of genesis into its own section? Seems silly though.
+	StartupCommands []string `json:"startup-commands"`
 }
 
 func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
@@ -117,6 +118,9 @@ func LoadConfig(chainCfgFile string) (*MainConfig, error) {
 		// Replace all string instances of %DENOM% with the chain's denom.
 		// Even in nested structs, slices/arrays, etc.
 		util.ReplaceStringValues(&chain, "%DENOM%", chain.Denom)
+		util.ReplaceStringValues(&chain, "%BIN%", chain.Binary)
+		util.ReplaceStringValues(&chain, "%CHAIN_ID%", chain.ChainID)
+
 		chains[i] = chain
 	}
 
@@ -197,13 +201,13 @@ func (chain *Chain) setChainDefaults() {
 
 	// TODO: Error here instead?
 	if chain.Binary == "" {
-		chain.Binary = "junod"
+		panic("'binary' is required in your config for " + chain.ChainID)
 	}
 	if chain.Denom == "" {
-		chain.Denom = "ujuno"
+		panic("'denom' is required in your config for " + chain.ChainID)
 	}
 	if chain.Bech32Prefix == "" {
-		chain.Bech32Prefix = "juno"
+		panic("'bech32-prefix' is required in your config for " + chain.ChainID)
 	}
 }
 

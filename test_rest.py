@@ -65,7 +65,7 @@ def docker_command(cmd: str, asJSON: bool = False) -> str | dict:
 
 # Test
 
-res = docker_command("ls -la")
+res = bin_request("keys list --keyring-backend=test")
 print(res)
 
 res = bin_request(

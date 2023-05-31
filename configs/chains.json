@@ -50,12 +50,22 @@
                         "amount": "10000000%DENOM%",
                         "mnemonic": "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise"
                     }
+                ],
+                "startup-commands": [
+                    "%BIN% keys add example-key-after --keyring-backend test --home %HOME%",
+                    "%BIN% keys add example-key-after1 --keyring-backend test --home %HOME%",
+                    "%BIN% keys add example-key-after2 --keyring-backend test --home %HOME%",
+                    "%BIN% keys add example-key-after3 --keyring-backend test --home %HOME%",
+                    "%BIN% keys add example-key-after4 --keyring-backend test --home %HOME%",
+                    "%BIN% keys add example-key-after5 --keyring-backend test --home %HOME%"
                 ]                
             }
         },
         {
             "name": "juno",
             "chain-id": "localjuno-2",
+            "binary": "junod",
+            "bech32-prefix": "juno",
             "denom": "ujuno",
             "docker-image": {
                 "repository": "ghcr.io/cosmoscontracts/juno-e2e",

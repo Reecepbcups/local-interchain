@@ -13,13 +13,9 @@ import (
 
 // start as `go StartNonBlockingServer()`
 func StartNonBlockingServer(ctx context.Context, config *MainConfig, vals map[string]*cosmos.ChainNode) {
-	logger := log.Default()
-
 	// TODO: Multiple in 1?
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
-			// Start a goroutine to handle the request
-			logger.Println("Received POST request", vals)
 			handlePostRequest(w, r, ctx, vals)
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -28,7 +24,6 @@ func StartNonBlockingServer(ctx context.Context, config *MainConfig, vals map[st
 	})
 
 	server := fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
-
 	if err := http.ListenAndServe(server, nil); err != nil {
 		log.Default().Println(err)
 	}
