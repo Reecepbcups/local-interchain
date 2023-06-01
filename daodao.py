@@ -11,11 +11,10 @@ import base64
 import json
 import os
 import time
-from dataclasses import dataclass
 
 import httpx
 
-from test_rest import Request, bin_request, docker_command, query_request
+from test_rest import bin_request, query_request
 
 KEY_NAME = "acc0"
 
@@ -27,14 +26,49 @@ with open(os.path.join(current_dir, "configs", "server.json")) as f:
 PORT = server_config["port"]
 HOST = server_config["host"]
 URL = f"http://{HOST}:{PORT}/"
+UPLOAD = f"http://{HOST}:{PORT}/upload"
 
 contracts_path = os.path.join(current_dir, "contracts")
 if not os.path.exists(contracts_path):
     os.mkdir(contracts_path)
 
 
-def store_contract(rel_file_path: str, asJSON: bool = False) -> str | dict:
+import hashlib
+
+
+def get_file_hash(rel_file_path: str) -> str:
+    BUF_SIZE = 65536  # 64k chunks
+    md5 = hashlib.md5()
+    sha1 = hashlib.sha1()
+
+    file_path = os.path.join(contracts_path, rel_file_path)
+
+    with open(file_path, "rb") as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            md5.update(data)
+            sha1.update(data)
+
+    return sha1.hexdigest()
+
+
+def store_contract(rel_file_path: str) -> str | dict:
     print(f"Uploading {rel_file_path}")
+
+    # create configs/.contracts.json if not already
+    contracts_json_path = os.path.join(current_dir, "configs", ".contracts.json")
+    if not os.path.exists(contracts_json_path):
+        with open(contracts_json_path, "w") as f:
+            f.write("{}")
+
+    sha1 = get_file_hash(rel_file_path)
+    with open(contracts_json_path, "r") as f:
+        contracts_json = json.load(f)
+
+    if sha1 in contracts_json:
+        return contracts_json[sha1]
 
     data = {
         "chain-id": "localjuno-1",
@@ -42,50 +76,24 @@ def store_contract(rel_file_path: str, asJSON: bool = False) -> str | dict:
         "file-name": rel_file_path,
     }
     r = httpx.post(
-        f"{URL}upload",
+        UPLOAD,
         json=data,
         headers={"Content-Type": "application/json"},
         timeout=120,
     )
-    if asJSON:
-        return json.loads(r.text)
 
-    return r.text
+    # TODO: Get code id and save to the contracts_json_path
+    if r.status_code != 200:
+        print(r.text)
+        return r.text
 
+    res = json.loads(r.text)
 
-# From https://github.com/DA0-DA0/dao-contracts/releases
+    contracts_json[sha1] = res["code_id"]
+    with open(contracts_json_path, "w") as f:
+        json.dump(contracts_json, f)
 
-
-def download_contracts():
-    # v2.1.0
-    files = """cw20_base.wasm 2443
-    cw20_stake.wasm 2444
-    cw20_stake_external_rewards.wasm 2445
-    cw20_stake_reward_distributor.wasm 2446
-    cw4_group.wasm 2447
-    cw721_base.wasm 2448
-    cw_admin_factory.wasm 2449
-    cw_fund_distributor.wasm 2450
-    cw_payroll_factory.wasm 2451
-    cw_token_swap.wasm 2452
-    cw_vesting.wasm 2453
-    dao_core.wasm 2454
-    dao_migrator.wasm 2455
-    dao_pre_propose_approval_single.wasm 2456
-    dao_pre_propose_approver.wasm 2457
-    dao_pre_propose_multiple.wasm 2458
-    dao_pre_propose_single.wasm 2459
-    dao_proposal_condorcet.wasm 2460
-    dao_proposal_multiple.wasm 2461
-    dao_proposal_single.wasm 2462
-    dao_voting_cw20_staked.wasm 2463
-    dao_voting_cw4.wasm 2464
-    dao_voting_cw721_staked.wasm 2465
-    dao_voting_native_staked.wasm 2466"""
-
-    for file in files.split("\n"):
-        name, codeId = file.split(" ")
-        os.system(f"junod q wasm code {codeId} {current_dir}/contracts/{name}")
+    return res["code_id"]
 
 
 def getContractAddr(tx_hash: str) -> str:
@@ -147,7 +155,7 @@ def new():
         "allow_revoting": False,
         "max_voting_period": {"time": 604800},
         "close_proposal_on_execution_failure": True,
-        "pre_propose_info": {"AnyoneMayPropose": {}},
+        "pre_propose_info": {"anyone_may_propose": {}},
         "only_members_execute": True,
         "threshold": {
             "threshold_quorum": {
@@ -269,5 +277,85 @@ def new():
     pass
 
 
+def encode(MSG: dict):
+    if isinstance(MSG, str):
+        MSG = json.loads(MSG)
+
+    return base64.b64encode(remove_spaces(MSG)).decode("utf-8")
+
+
+def remove_spaces(MSG: dict):
+    return json.dumps(MSG, separators=(",", ":")).encode("utf-8")
+
+
+def attempt_3():
+    bin_request(f"config keyring-backend test")
+    FLAGS = "--home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
+
+    dao_proposal_single_code_id = store_contract(
+        f"../contracts/dao_proposal_single.wasm"
+    )
+    print(dao_proposal_single_code_id)
+
+    dao_voting_native_staked_code_id = store_contract(
+        f"../contracts/dao_voting_native_staked.wasm"
+    )
+    print(dao_voting_native_staked_code_id)
+
+    dao_core_code_id = store_contract(f"../contracts/dao_core.wasm")
+    print(dao_core_code_id)
+
+    # https://github.com/DA0-DA0/dao-contracts/blob/main/scripts/create-v2-dao-native-voting.sh
+    MODULE_MSG = {
+        "allow_revoting": False,
+        "max_voting_period": {"time": 604800},
+        "close_proposal_on_execution_failure": True,
+        "pre_propose_info": {"anyone_may_propose": {}},
+        "only_members_execute": True,
+        "threshold": {
+            "threshold_quorum": {
+                "quorum": {"percent": "0.20"},
+                "threshold": {"majority": {}},
+            }
+        },
+    }
+    ENCODED_PROP_MESSAGE = encode(MODULE_MSG)
+    print(ENCODED_PROP_MESSAGE)
+
+    VOTING_MSG = '{"owner":{"core_module":{}},"denom":"ujuno"}'
+    ENCODED_VOTING_MESSAGE = encode(VOTING_MSG)
+    print(ENCODED_VOTING_MESSAGE)
+
+    CW_CORE_INIT = remove_spaces(
+        {
+            "admin": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
+            "automatically_add_cw20s": True,
+            "automatically_add_cw721s": True,
+            "description": "V2_DAO",
+            "name": "V2_DAO",
+            "proposal_modules_instantiate_info": [
+                {
+                    "admin": {"core_module": {}},
+                    "code_id": dao_proposal_single_code_id,
+                    "label": "v2_dao",
+                    "msg": f"{ENCODED_PROP_MESSAGE}",
+                }
+            ],
+            "voting_module_instantiate_info": {
+                "admin": {"core_module": {}},
+                "code_id": dao_voting_native_staked_code_id,
+                "label": "test_v2_dao-cw-native-voting",
+                "msg": f"{ENCODED_VOTING_MESSAGE}",
+            },
+        }
+    ).decode("utf-8")
+
+    print(CW_CORE_INIT)
+
+    tx = f"tx wasm instantiate {dao_core_code_id} {CW_CORE_INIT} --label=dao_core --from {KEY_NAME} --no-admin {FLAGS}"
+    addr = instantiate_contract(tx)
+    print(addr)
+
+
 if __name__ == "__main__":
-    new()
+    attempt_3()

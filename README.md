@@ -8,9 +8,9 @@ A simple way to config and run IBC local chain testing environments using [Stran
 
 - *(optional)* Edit `./configs/relayer.json`
 - Copy: `cp ./configs/chains.json ./configs/mytest1_chains.json`
-- Run: `CHAIN_CONFIG=mytest1_chains.json make run`
+- Run: `CONFIG=mytest1_chains.json make run`
 
-*(Not using 'CHAIN_CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
+*(Not using 'CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
 
 ---
 

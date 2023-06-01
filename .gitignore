@@ -1,8 +1,10 @@
-# Ignore custom chain configs. Ex: `CHAIN_CONFIG=mycustom_chains.json make run`
+# Ignore custom chain configs. Ex: `CONFIG=mycustom_chains.json make run`
 configs/*_chains.json
 
 configs/logs.json
+configs/.contracts.json
 
 contracts/*.wasm
+
 
 __pycache__/

@@ -17,7 +17,7 @@ import (
 
 // TestLocalChains runs local IBC chain(s) easily.
 func TestLocalChains(t *testing.T) {
-	chainCfgFile := os.Getenv("CHAIN_CONFIG")
+	chainCfgFile := os.Getenv("CONFIG")
 	config, err := LoadConfig(chainCfgFile)
 	require.NoError(t, err)
 
