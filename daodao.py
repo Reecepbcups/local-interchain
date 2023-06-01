@@ -101,12 +101,16 @@ def getContractAddr(tx_hash: str) -> str:
     res = query_request(f"tx {tx_hash} --output=json")
     print(res)
 
-    res_json = json.loads(str(res))
+    try:
+        res_json = json.loads(str(res))
+    except:
+        print(f"Error parsing JSON. {res}")
+        return res
 
-    code = res_json["code"]
+    code = int(res_json["code"])
     if code != 0:
         raw = res_json["raw_log"]
-        print(raw)
+        print(res_json)
         return raw
 
     contract_addr = ""
@@ -121,6 +125,15 @@ def getContractAddr(tx_hash: str) -> str:
     return contract_addr
 
 
+def instantiate_contract(msg: str) -> str:
+    # tx = f"tx wasm instantiate {cw4CodeId} {init} --label=cw4 --from {KEY_NAME} --no-admin --home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json"
+    res = bin_request(msg, asJSON=True)
+    print(res)
+    time.sleep(2.5)
+    addr = getContractAddr(json.loads(res)["txhash"])
+    return addr
+
+
 def new():
     bin_request(f"config keyring-backend test")
     FLAGS = "--home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
@@ -131,6 +144,12 @@ def new():
     # dao_proposal_single.wasm
 
     # bin_request("keys list --keyring-backend=test")
+
+    daoProposalSingleCode = 16
+    # daoProposalSingleCode = store_contract(
+    #     f"../contracts/dao_proposal_single.wasm", asJSON=True
+    # )
+    print(daoProposalSingleCode)
 
     CORE_MOD_MSG = {
         "allow_revoting": False,
@@ -182,57 +201,62 @@ def new():
     #     f"../contracts/cw_admin_factory.wasm", asJSON=True
     # )["code_id"]
     print(cwAdminFactoryCode)
-    tx = f"tx wasm instantiate {cwAdminFactoryCode} {{}} --label=cw_admin_factory --from {KEY_NAME} --no-admin {FLAGS}"
-    res = bin_request(tx)
-    print(res)
-    time.sleep(2.5)
-    adminFactory = getContractAddr(json.loads(res)["txhash"])
-    print(adminFactory)
+    # tx = f"tx wasm instantiate {cwAdminFactoryCode} {{}} --label=cw_admin_factory --from {KEY_NAME} --no-admin {FLAGS}"
+    # res = bin_request(tx)
+    # print(res)
+    # time.sleep(2.5)
+    # adminFactory = getContractAddr(json.loads(res)["txhash"])
+    # print(adminFactory)
+
+    adminFactory = "juno1gpvd7r5u6v2et6fva445k80gukfc7kqsql3luvh4zqxp6lvwepeqhanamp"
 
     # == DAO Core ==
     daoCoreCode = 0
     # daoCoreCode = store_contract(f"../contracts/dao_core.wasm", asJSON=True)["code_id"]
     # print(daoCoreCode)
-    CW_CORE_INIT = str(
-        json.dumps(
-            {
-                "admin": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
-                "automatically_add_cw20s": True,
-                "automatically_add_cw721s": True,
-                "description": "V2 DAO",
-                "name": "V2 DAO",
-                "proposal_modules_instantiate_info": [
-                    # {
-                    #     "admin": {"core_module": {}},
-                    #     "code_id": 696,
-                    #     "label": "v2 dao",
-                    #     "msg": ENCODED_CORE_MOD_MSG,
-                    # }
-                ],
-                "voting_module_instantiate_info": {
+    CW_CORE_INIT = json.dumps(
+        {
+            "admin": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
+            "automatically_add_cw20s": True,
+            "automatically_add_cw721s": True,
+            "description": "V2 DAO",
+            "name": "V2 DAO",
+            "image_url": "https://nftstorage.link/ipfs/bafkreidawbt34hsqio4lfrivviccm4ahyrmltkpgancjmlh7mzubriyate/",
+            "proposal_modules_instantiate_info": [
+                {
                     "admin": {"core_module": {}},
-                    "code_id": daoVotingCW4Code,
-                    "label": "test_v2_dao-cw4-voting",
-                    "msg": ENCODED_VOTING_MESSAGE,
-                },
+                    "code_id": daoProposalSingleCode,
+                    "label": "v2 dao",
+                    "msg": ENCODED_CORE_MOD_MSG,
+                }
+            ],
+            "voting_module_instantiate_info": {
+                "admin": {"core_module": {}},
+                "code_id": daoVotingCW4Code,
+                "label": "test_v2_dao-cw4-voting",
+                "msg": ENCODED_VOTING_MESSAGE,
             },
-            separators=(":", ","),
-        )
+        },
+        separators=(",", ":"),
     )
-    print(CW_CORE_INIT)
+
+    # print(CW_CORE_INIT)
     # ENCODED_CORE_MSG = base64.b64encode(CW_CORE_INIT.encode("utf-8")).decode("utf-8")
 
-    tx = f"tx wasm instantiate {adminFactory} '{CW_CORE_INIT}' --label=dao_core --from {KEY_NAME} --no-admin {FLAGS}"
+    # '{CW_CORE_INIT}'
+
+    # --label=dao_core
+    # tx = "tx wasm execute " + adminFactory + " '{}' --from acc0 " + FLAGS
+
+    # TODO: Error: accepts 2 arg(s), received 5 - whattttttttttttttttttttt
+    tx = f"tx wasm execute {adminFactory} '" + CW_CORE_INIT + "' --from acc0"
+    print(tx)
+    # exit(1)
     res = bin_request(tx)
     print(res)
     time.sleep(2.5)
-    addr = getContractAddr(json.loads(res)["txhash"])
-    print(addr)
-
-    # daoProposalSingleCode = store_contract(
-    #     f"../contracts/dao_proposal_single.wasm", asJSON=True
-    # )
-    # print(daoProposalSingleCode)
+    # addr = getContractAddr(json.loads(res)["txhash"])
+    # print(addr)
 
     pass
 
