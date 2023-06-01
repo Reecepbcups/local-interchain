@@ -1,4 +1,4 @@
 run:
-	go test -race -v -run TestLocalChains .
+	go test -timeout 9999999s -race -v -run TestLocalChains .
 
 .PHONY: run

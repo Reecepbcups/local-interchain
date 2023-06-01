@@ -32,5 +32,9 @@ func replaceStringFields(value reflect.Value, oldStr, replacement string) {
 			updatedStr := strings.Replace(currentStr, oldStr, replacement, -1)
 			value.SetString(updatedStr)
 		}
+	case reflect.Map:
+		for _, key := range value.MapKeys() {
+			replaceStringFields(value.MapIndex(key), oldStr, replacement)
+		}
 	}
 }

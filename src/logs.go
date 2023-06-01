@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
 type MainLogs struct {
-	Chains   []LogOutput  `json:"chains"`
-	Channels []IBCChannel `json:"ibc-channels"`
+	StartTime uint64       `json:"start-time"`
+	Chains    []LogOutput  `json:"chains"`
+	Channels  []IBCChannel `json:"ibc-channels"`
 }
 type LogOutput struct {
 	ChainID     string   `json:"chain-id"`
@@ -33,8 +35,9 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 	ttlWait := 0
 
 	mainLogs := MainLogs{
-		Chains:   []LogOutput{},
-		Channels: connections,
+		StartTime: uint64(time.Now().Unix()),
+		Chains:    []LogOutput{},
+		Channels:  connections,
 	}
 
 	// Iterate chain config & get the ibc chain's to save data to logs.
