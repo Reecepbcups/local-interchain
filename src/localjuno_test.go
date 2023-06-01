@@ -16,6 +16,9 @@ import (
 )
 
 // TestLocalChains runs local IBC chain(s) easily.
+
+// remove testing, use go context from here. then put into main()
+// https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
 func TestLocalChains(t *testing.T) {
 	chainCfgFile := os.Getenv("CONFIG")
 	config, err := LoadConfig(chainCfgFile)
