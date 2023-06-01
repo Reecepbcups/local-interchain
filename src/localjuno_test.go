@@ -21,7 +21,7 @@ func TestLocalChains(t *testing.T) {
 	config, err := LoadConfig(chainCfgFile)
 	require.NoError(t, err)
 
-	WriteRunningChains([]byte("[]"))
+	WriteRunningChains([]byte("{}"))
 
 	// ibc-path-name -> index of []cosmos.CosmosChain
 	ibcpaths := make(map[string][]int)
@@ -134,6 +134,6 @@ func TestLocalChains(t *testing.T) {
 
 	t.Cleanup(func() {
 		_ = ic.Close()
-		WriteRunningChains([]byte("[]"))
+		WriteRunningChains([]byte("{}"))
 	})
 }

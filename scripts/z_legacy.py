@@ -1,3 +1,9 @@
+import os
+
+import httpx
+from util_base import contracts_path
+
+
 def download_deps():
     files = [
         "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",
@@ -47,4 +53,4 @@ def download_contracts():
 
     for file in files.split("\n"):
         name, codeId = file.split(" ")
-        os.system(f"junod q wasm code {codeId} {current_dir}/contracts/{name}")
+        os.system(f"junod q wasm code {codeId} {contracts_path}/{name}")
