@@ -203,9 +203,10 @@ def new():
     adminFactory = "juno1gpvd7r5u6v2et6fva445k80gukfc7kqsql3luvh4zqxp6lvwepeqhanamp"
 
     # == DAO Core ==
-    daoCoreCode = 0
+    daoCoreCode = 17
     # daoCoreCode = store_contract(f"../contracts/dao_core.wasm", asJSON=True)["code_id"]
     # print(daoCoreCode)
+
     CW_CORE_INIT = json.dumps(
         {
             "admin": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
@@ -240,7 +241,23 @@ def new():
     # --label=dao_core
     # tx = "tx wasm execute " + adminFactory + " '{}' --from acc0 " + FLAGS
 
-    tx = f"tx wasm execute {adminFactory} '" + CW_CORE_INIT + f"' --from acc0 {FLAGS}"
+    # INIT_MSG='{"instantiate_contract_with_self_admin":{"code_id":695, "label": "v2 subDAO subDAO", "instantiate_msg":"'$CW_CORE_ENCODED'"}}'
+
+    # tx = f"tx wasm execute {adminFactory} " + CW_CORE_INIT + f" --from acc0 {FLAGS}"
+    # print(tx)
+    # # exit(1)
+    # res = bin_request(tx)
+    # print(res)
+    # time.sleep(2.5)
+    # # addr = getContractAddr(json.loads(res)["txhash"])
+    # # print(addr)
+
+    # Just launch the core dao
+    tx = (
+        f"tx wasm instantiate {daoCoreCode} "
+        + CW_CORE_INIT
+        + f" --label=dao_core --from acc0 --no-admin {FLAGS}"
+    )
     print(tx)
     # exit(1)
     res = bin_request(tx)
