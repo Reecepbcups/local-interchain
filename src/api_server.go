@@ -23,6 +23,15 @@ func StartNonBlockingServer(ctx context.Context, config *MainConfig, vals map[st
 		}
 	})
 
+	http.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			handleUploadFile(w, r, ctx, vals)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			w.Write([]byte("Only POST requests are allowed"))
+		}
+	})
+
 	server := fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
 	if err := http.ListenAndServe(server, nil); err != nil {
 		log.Default().Println(err)
@@ -35,20 +44,49 @@ type ActionHandler struct {
 	Cmd     string `json:"cmd"`
 }
 
+type Uploader struct {
+	ChainId  string `json:"chain-id"`
+	KeyName  string `json:"key-name"`
+	FileName string `json:"file-name"`
+}
+
+func handleUploadFile(w http.ResponseWriter, r *http.Request, ctx context.Context, vals map[string]*cosmos.ChainNode) {
+	var u Uploader
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error":%s}`, err)))
+		return
+	}
+
+	log.Printf("Uploader: %+v", u)
+
+	chainId := u.ChainId
+	if _, ok := vals[chainId]; !ok {
+		w.Write([]byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
+		return
+	}
+
+	codeId, err := vals[chainId].StoreContract(ctx, u.KeyName, u.FileName)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error":%s}`, err)))
+		return
+	}
+
+	w.Write([]byte(fmt.Sprintf(`{"code_id":%s}`, codeId)))
+}
+
 func handlePostRequest(w http.ResponseWriter, r *http.Request, ctx context.Context, vals map[string]*cosmos.ChainNode) {
 	var ah ActionHandler
 	err := json.NewDecoder(r.Body).Decode(&ah)
 	if err != nil {
-		output := fmt.Sprintf(`{"error":%s}`, err)
-		w.Write([]byte(output))
+		w.Write([]byte(fmt.Sprintf(`{"error":%s}`, err)))
 		return
 	}
 
 	chainId := ah.ChainId
 	action := ah.Action
 	if _, ok := vals[chainId]; !ok {
-		output := fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)
-		w.Write([]byte(output))
+		w.Write([]byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
 		return
 	}
 

@@ -65,54 +65,60 @@ def docker_command(cmd: str, asJSON: bool = False) -> str | dict:
 
 # Test
 
-res = bin_request("keys list --keyring-backend=test")
-print(res)
 
-res = bin_request(
-    "tx decode ClMKUQobL2Nvc21vcy5nb3YudjFiZXRhMS5Nc2dWb3RlEjIIpwISK2p1bm8xZGM3a2MyZzVrZ2wycmdmZHllZGZ6MDl1YTlwZWo1eDNsODc3ZzcYARJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECxjGMmYp4MlxxfFWi9x4u+jOleJVde3Cru+HnxAVUJmgSBAoCCH8YNBISCgwKBXVqdW5vEgMyMDQQofwEGkDPE4dCQ4zUh6LIB9wqNXDBx+nMKtg0tEGiIYEH8xlw4H8dDQQStgAe6xFO7I/oYVSWwa2d9qUjs9qyB8r+V0Gy",
-    asJSON=True,
-)
-print(res)
+def main():
+    res = bin_request("keys list --keyring-backend=test")
+    print(res)
 
-res = bin_request("config keyring-backend test")
-print(res)
-
-res = bin_request("config node %RPC%")
-print(res)
-
-res = bin_request("config", asJSON=True)
-print(res)
-
-res = bin_request("keys list --output=json", asJSON=True)
-print(res)
-
-res = query_request(
-    "bank balances juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 --output=json",
-    asJSON=True,
-)
-print(res)
-
-# Transaction test
-res = bin_request(
-    "tx bank send acc0 juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 500ujuno --fees 5000ujuno --node %RPC% --chain-id %CHAIN_ID% --yes --output json",
-    asJSON=True,
-)
-print(res)
-
-txHash = ""
-if isinstance(res, dict):
-    txHash = res["txhash"]
-
-if len(txHash) > 0:
-    time.sleep(7)
-    res = query_request(
-        f"tx {txHash} --output json",
+    res = bin_request(
+        "tx decode ClMKUQobL2Nvc21vcy5nb3YudjFiZXRhMS5Nc2dWb3RlEjIIpwISK2p1bm8xZGM3a2MyZzVrZ2wycmdmZHllZGZ6MDl1YTlwZWo1eDNsODc3ZzcYARJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECxjGMmYp4MlxxfFWi9x4u+jOleJVde3Cru+HnxAVUJmgSBAoCCH8YNBISCgwKBXVqdW5vEgMyMDQQofwEGkDPE4dCQ4zUh6LIB9wqNXDBx+nMKtg0tEGiIYEH8xlw4H8dDQQStgAe6xFO7I/oYVSWwa2d9qUjs9qyB8r+V0Gy",
         asJSON=True,
     )
     print(res)
 
-res = query_request(
-    "bank balances juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 --output=json",
-    asJSON=True,
-)
-print(res)
+    res = bin_request("config keyring-backend test")
+    print(res)
+
+    res = bin_request("config node %RPC%")
+    print(res)
+
+    res = bin_request("config", asJSON=True)
+    print(res)
+
+    res = bin_request("keys list --output=json", asJSON=True)
+    print(res)
+
+    res = query_request(
+        "bank balances juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 --output=json",
+        asJSON=True,
+    )
+    print(res)
+
+    # Transaction test
+    res = bin_request(
+        "tx bank send acc0 juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 500ujuno --fees 5000ujuno --node %RPC% --chain-id %CHAIN_ID% --yes --output json",
+        asJSON=True,
+    )
+    print(res)
+
+    txHash = ""
+    if isinstance(res, dict):
+        txHash = res["txhash"]
+
+    if len(txHash) > 0:
+        time.sleep(7)
+        res = query_request(
+            f"tx {txHash} --output json",
+            asJSON=True,
+        )
+        print(res)
+
+    res = query_request(
+        "bank balances juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 --output=json",
+        asJSON=True,
+    )
+    print(res)
+
+
+if __name__ == "__main__":
+    main()
