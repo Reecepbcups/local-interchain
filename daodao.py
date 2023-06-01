@@ -28,18 +28,13 @@ PORT = server_config["port"]
 HOST = server_config["host"]
 URL = f"http://{HOST}:{PORT}/"
 
+contracts_path = os.path.join(current_dir, "contracts")
+if not os.path.exists(contracts_path):
+    os.mkdir(contracts_path)
 
-# name -> code_id
-code_maps: dict[str, str] = {}
 
-
-def store_contract(
-    rel_file_path: str, asJSON: bool = False, bypass: bool = False
-) -> str | dict:
+def store_contract(rel_file_path: str, asJSON: bool = False) -> str | dict:
     print(f"Uploading {rel_file_path}")
-
-    if bypass == False and rel_file_path in code_maps:
-        return code_maps[rel_file_path]
 
     data = {
         "chain-id": "localjuno-1",
@@ -53,10 +48,7 @@ def store_contract(
         timeout=120,
     )
     if asJSON:
-        res = json.loads(r.text)
-        codeId = str(res["code_id"])
-        code_maps[rel_file_path] = codeId
-        return res
+        return json.loads(r.text)
 
     return r.text
 
@@ -105,7 +97,7 @@ def getContractAddr(tx_hash: str) -> str:
         res_json = json.loads(str(res))
     except:
         print(f"Error parsing JSON. {res}")
-        return res
+        return str(res)
 
     code = int(res_json["code"])
     if code != 0:
@@ -127,10 +119,10 @@ def getContractAddr(tx_hash: str) -> str:
 
 def instantiate_contract(msg: str) -> str:
     # tx = f"tx wasm instantiate {cw4CodeId} {init} --label=cw4 --from {KEY_NAME} --no-admin --home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json"
-    res = bin_request(msg, asJSON=True)
+    res = bin_request(msg, asJSON=False)
     print(res)
     time.sleep(2.5)
-    addr = getContractAddr(json.loads(res)["txhash"])
+    addr = getContractAddr(json.loads(str(res))["txhash"])
     return addr
 
 
@@ -219,14 +211,14 @@ def new():
             "admin": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
             "automatically_add_cw20s": True,
             "automatically_add_cw721s": True,
-            "description": "V2 DAO",
-            "name": "V2 DAO",
+            "description": "V2_DAO",
+            "name": "V2_DAO",
             "image_url": "https://nftstorage.link/ipfs/bafkreidawbt34hsqio4lfrivviccm4ahyrmltkpgancjmlh7mzubriyate/",
             "proposal_modules_instantiate_info": [
                 {
                     "admin": {"core_module": {}},
                     "code_id": daoProposalSingleCode,
-                    "label": "v2 dao",
+                    "label": "v2_dao",
                     "msg": ENCODED_CORE_MOD_MSG,
                 }
             ],
@@ -248,8 +240,7 @@ def new():
     # --label=dao_core
     # tx = "tx wasm execute " + adminFactory + " '{}' --from acc0 " + FLAGS
 
-    # TODO: Error: accepts 2 arg(s), received 5 - whattttttttttttttttttttt
-    tx = f"tx wasm execute {adminFactory} '" + CW_CORE_INIT + "' --from acc0"
+    tx = f"tx wasm execute {adminFactory} '" + CW_CORE_INIT + f"' --from acc0 {FLAGS}"
     print(tx)
     # exit(1)
     res = bin_request(tx)
