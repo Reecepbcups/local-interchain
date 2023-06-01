@@ -4,3 +4,5 @@ configs/*_chains.json
 configs/logs.json
 
 contracts/*.wasm
+
+__pycache__/
