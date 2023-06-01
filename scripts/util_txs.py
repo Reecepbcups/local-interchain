@@ -3,7 +3,7 @@ import os
 import time
 
 import httpx
-from util_base import contracts_json_path, parent_dir
+from util_base import contracts_json_path, default_contracts_json, parent_dir
 from util_contracts import get_file_hash
 from util_req import RequestBase, send_request
 
@@ -82,10 +82,7 @@ def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> 
     if ictest_chain_start == -1:
         return -1
 
-    # create default file if not there
-    if not os.path.exists(contracts_json_path):
-        with open(contracts_json_path, "w") as f:
-            f.write(json.dumps({"start_time": 0, "file_cache": {}}))
+    default_contracts_json()
 
     with open(contracts_json_path, "r") as f:
         contracts = json.load(f)

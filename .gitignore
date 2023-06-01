@@ -2,7 +2,7 @@
 configs/*_chains.json
 
 configs/logs.json
-configs/.contracts.json
+configs/contracts.json
 
 contracts/*.wasm
 

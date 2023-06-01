@@ -15,6 +15,10 @@ def get_file_hash(rel_file_path: str) -> str:
 
     file_path = os.path.join(contracts_path, rel_file_path)
 
+    # if file_path does not exist, throw error
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
     with open(file_path, "rb") as f:
         while True:
             data = f.read(BUF_SIZE)
