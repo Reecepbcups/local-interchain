@@ -10,7 +10,6 @@ Steps:
 import os
 
 from api_test import send_request
-from httpx import get
 from util_base import URL, contracts_path
 from util_contracts import b64encode, instantiate_contract, remove_spaces
 from util_req import RequestBase, RequestType
@@ -95,25 +94,6 @@ def main():
     print(addr)
 
 
-def download_deps():
-    files = [
-        "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",
-        "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",
-        "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",
-    ]
-
-    # download the file to the contracts/ folder
-    for url in files:
-        name = url.split("/")[-1]
-        file_path = os.path.join(contracts_path, name)
-
-        if not os.path.exists(file_path):
-            print(f"Downloading {name} to {file_path}")
-            r = get(url, allow_redirects=True)
-            with open(file_path, "wb") as f:
-                f.write(r.content)
-
-
 def download_contracts():
     # From https://github.com/DA0-DA0/dao-contracts/releases
     # v2.1.0
@@ -145,12 +125,16 @@ def download_contracts():
     for file in files.split("\n"):
         file = file.strip()
         name, codeId = file.split(" ")
-        cmd = f"junod q wasm code {codeId} {contracts_path}/{name}"
+
+        file_path = os.path.join(contracts_path, name)
+        if os.path.exists(file_path):
+            continue
+
+        cmd = f"junod q wasm code {codeId} {file_path}"
         # print(cmd)
         os.system(cmd)
 
 
 if __name__ == "__main__":
-    # download_contracts()
-    # download_deps()
+    download_contracts()
     main()

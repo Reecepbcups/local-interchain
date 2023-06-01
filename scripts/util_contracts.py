@@ -4,8 +4,30 @@ import json
 import os
 import time
 
+from httpx import get
 from util_base import contracts_path, current_dir, parent_dir
 from util_req import RequestBase, send_request
+
+
+def download_base_contracts():
+    files = [
+        "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",
+        "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",
+        "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",
+    ]
+
+    # download the file to the contracts/ folder
+    for url in files:
+        name = url.split("/")[-1]
+        file_path = os.path.join(contracts_path, name)
+
+        if os.path.exists(file_path):
+            continue
+
+        print(f"Downloading {name} to {file_path}")
+        r = get(url, allow_redirects=True)
+        with open(file_path, "wb") as f:
+            f.write(r.content)
 
 
 def get_file_hash(rel_file_path: str) -> str:

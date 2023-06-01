@@ -77,16 +77,7 @@ def _upload_file(URL: str, chain_id: str, key_name: str, rel_file_path: str) -> 
     return json.loads(r.text)
 
 
-def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> int:
-    ictest_chain_start = get_chain_start_time_from_logs()
-    if ictest_chain_start == -1:
-        return -1
-
-    default_contracts_json()
-
-    with open(contracts_json_path, "r") as f:
-        contracts = json.load(f)
-
+def get_cache_or_default(contracts: dict, ictest_chain_start: int) -> dict:
     with open(contracts_json_path, "r") as f:
         cache_time = dict(json.load(f)).get("start_time", 0)
 
@@ -99,6 +90,28 @@ def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> 
         with open(contracts_json_path, "w") as f:
             json.dump(contracts, f, indent=4)
 
+    return contracts
+
+
+def update_cache(contracts: dict, code_id: str | int, sha_hash: str) -> int:
+    contracts["file_cache"][sha_hash] = int(code_id)
+    with open(contracts_json_path, "w") as f:
+        json.dump(contracts, f, indent=4)
+    return int(code_id)
+
+
+def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> int:
+    ictest_chain_start = get_chain_start_time_from_logs()
+    if ictest_chain_start == -1:
+        return -1
+
+    default_contracts_json()
+
+    with open(contracts_json_path, "r") as f:
+        contracts = json.load(f)
+
+    contracts = get_cache_or_default(contracts, ictest_chain_start)
+
     sha1 = get_file_hash(rel_file_path)
     if sha1 in contracts["file_cache"]:
         codeId = contracts["file_cache"][sha1]
@@ -109,11 +122,5 @@ def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> 
     if "error" in res:
         raise Exception(res["error"])
 
-    # Update cache with new code id
-    codeID = res["code_id"]
-
-    contracts["file_cache"][sha1] = codeID
-    with open(contracts_json_path, "w") as f:
-        json.dump(contracts, f, indent=4)
-
+    codeID = update_cache(contracts, res["code_id"], sha1)
     return codeID
