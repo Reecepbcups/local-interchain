@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"strings"
-	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"go.uber.org/zap"
 )
 
 func AddGenesisKeysToKeyring(ctx context.Context, config *MainConfig, chains []ibc.Chain) {
@@ -21,12 +20,12 @@ func AddGenesisKeysToKeyring(ctx context.Context, config *MainConfig, chains []i
 	}
 }
 
-func PostStartupCommands(ctx context.Context, t *testing.T, config *MainConfig, chains []ibc.Chain) {
+func PostStartupCommands(ctx context.Context, logger *zap.Logger, config *MainConfig, chains []ibc.Chain) {
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 
 		for _, cmd := range chain.Genesis.StartupCommands {
-			t.Log("\nRunning startup command on", chainObj.Config().ChainID, "-->", fmt.Sprintf("`%s`", cmd))
+			logger.Info("Running startup command", zap.String("chain", chainObj.Config().ChainID), zap.String("cmd", cmd))
 
 			cmd = strings.ReplaceAll(cmd, "%HOME%", chainObj.Validators[0].HomeDir())
 			cmd = strings.ReplaceAll(cmd, "%CHAIN_ID%", chainObj.Config().ChainID)
@@ -37,10 +36,10 @@ func PostStartupCommands(ctx context.Context, t *testing.T, config *MainConfig, 
 			if len(output) == 0 {
 				output = stderr
 			} else if err != nil {
-				t.Fatalf("Error running startup command: %s\n%s", cmd, output)
+				logger.Error("Error running startup command", zap.String("chain", chainObj.Config().ChainID), zap.String("cmd", cmd), zap.Error(err))
 			}
 
-			t.Log(string(output))
+			logger.Info("Startup command output", zap.String("chain", chainObj.Config().ChainID), zap.String("cmd", cmd), zap.String("output", string(output)))
 		}
 	}
 }

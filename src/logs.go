@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"testing"
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"go.uber.org/zap"
 )
 
 type MainLogs struct {
@@ -29,7 +29,7 @@ func WriteRunningChains(bz []byte) {
 	_ = ioutil.WriteFile(filename, bz, 0644)
 }
 
-func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
+func DumpChainsInfoToLogs(logger *zap.Logger, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
 	// This may be un-needed.
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
