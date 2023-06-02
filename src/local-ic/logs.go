@@ -8,6 +8,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type MainLogs struct {
@@ -23,7 +24,7 @@ type LogOutput struct {
 	IBCPath     []string `json:"ibc-paths"`
 }
 
-const filename = "../configs/logs.json"
+const filename = "./configs/logs.json"
 
 func WriteRunningChains(bz []byte) {
 	_ = ioutil.WriteFile(filename, bz, 0644)
@@ -66,4 +67,25 @@ func DumpChainsInfoToLogs(logger *zap.Logger, config *MainConfig, chains []ibc.C
 	WriteRunningChains([]byte(bz))
 
 	return longestTTLChain, ttlWait
+}
+
+// == Zap Logger ==
+func getLoggerConfig() zap.Config {
+	config := zap.NewDevelopmentConfig()
+
+	// Customize the configuration according to your needs
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	return config
+}
+
+func InitLogger() (*zap.Logger, error) {
+	config := getLoggerConfig()
+	logger, err := config.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	return logger, nil
 }

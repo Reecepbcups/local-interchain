@@ -1,4 +1,4 @@
-local-ic
+bin/
 
 # Ignore custom chain configs. Ex: `CONFIG=mycustom_chains.json make run`
 configs/*_chains.json

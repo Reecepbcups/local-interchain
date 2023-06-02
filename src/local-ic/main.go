@@ -11,40 +11,14 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // TestLocalChains runs local IBC chain(s) easily.
-
-func getLoggerConfig() zap.Config {
-	config := zap.NewDevelopmentConfig()
-
-	// Customize the configuration according to your needs
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-
-	return config
-}
-
-func initLogger() (*zap.Logger, error) {
-	config := getLoggerConfig()
-	logger, err := config.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return logger, nil
-}
-
-// remove testing, use go context from here. then put into main()
-// https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
-func LocalChains() {
-
-	// create a ctx with a cancel func on completion of a sigkill
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger, err := initLogger()
+	logger, err := InitLogger()
 	if err != nil {
 		panic(err)
 	}
@@ -62,15 +36,13 @@ func LocalChains() {
 	chainSpecs := []*interchaintest.ChainSpec{}
 
 	for idx, cfg := range config.Chains {
-		// if cfg.Debugging {
-		// 	t.Logf("[%d] %v", idx, cfg)
-		// }
+		// logger.Info("Chain Config", zap.Int("index", idx), zap.Any("config", cfg))
 
 		_, chainSpec := CreateChainConfigs(cfg)
 		chainSpecs = append(chainSpecs, chainSpec)
 
 		if len(cfg.IBCPaths) > 0 {
-			// t.Log("IBC Path:", cfg.IBCPaths, "Chain:", cfg.Name)
+			// logger.Info("IBC Path", zap.Strings("paths", cfg.IBCPaths), zap.String("chain", cfg.Name))
 
 			for _, path := range cfg.IBCPaths {
 				ibcpaths[path] = append(ibcpaths[path], idx)
@@ -99,17 +71,15 @@ func LocalChains() {
 	}
 	ic.AdditionalGenesisWallets = SetupGenesisWallets(config, chains)
 
-	fakeTest := FakeT{name: name}
-
-	fakeTesting2 := FakeTesting{
+	fakeT := FakeTesting{
 		name: name,
 	}
 
 	// Base setup
 	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(&fakeTest) // this could just impl the test name. no need to require all of t here.
+	eRep := rep.RelayerExecReporter(&fakeT)
 
-	client, network := interchaintest.DockerSetup(fakeTesting2)
+	client, network := interchaintest.DockerSetup(fakeT)
 
 	// setup a relayer if we have IBC paths to use, then use a relayer
 	var relayer ibc.Relayer
@@ -129,7 +99,7 @@ func LocalChains() {
 		)
 
 		// This also just needs the name.
-		relayer = rf.Build(fakeTesting2, client, network)
+		relayer = rf.Build(fakeT, client, network)
 		ic = ic.AddRelayer(relayer, relayerName)
 
 		// Add links between chains
@@ -174,18 +144,12 @@ func LocalChains() {
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
 	logger.Info("Waiting for blocks", zap.Int("blocks", ttlWait), zap.String("chain", longestTTLChain.Config().ChainID))
 
-	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
-		logger.Fatal("testutil.WaitForBlocks", zap.Error(err))
-	}
+	go testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain)
 
-	// t.Cleanup(func() {
-	// 	_ = ic.Close()
-	// 	WriteRunningChains([]byte("{}"))
-	// })
-
+	// TODO: properly like:
+	// https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
 	// wait for ctx to be done, and if so run close()
 	<-ctx.Done()
 	_ = ic.Close()
 	WriteRunningChains([]byte("{}"))
-
 }

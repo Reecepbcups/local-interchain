@@ -1,10 +1,11 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-// This is a fake impl of testing.T so that ICtest is happy to use it.
-
-// t *testing.T
+// This is a fake impl of testing.T so that ICtest is happy to use it for logging.
 
 type FakeI interface {
 	testing.T
@@ -56,4 +57,5 @@ func (t FakeTesting) Helper() {
 
 // Logf
 func (t FakeTesting) Logf(format string, args ...any) {
+	fmt.Printf(format, args...)
 }

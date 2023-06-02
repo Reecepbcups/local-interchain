@@ -96,18 +96,19 @@ func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
 func LoadConfig(chainCfgFile string) (*MainConfig, error) {
 	var config *MainConfig
 
-	filePath := "../configs/chains.json"
+	// TODO: allow user to change this by default for the binary.
+	filePath := "configs/chains.json"
 	if chainCfgFile != "" {
-		filePath = "../configs/" + chainCfgFile
+		filePath = "configs/" + chainCfgFile
 	}
 
 	config, err := loadConfig(config, filePath)
 	if err != nil {
 		return nil, err
 	}
-	config, _ = loadConfig(config, "../configs/relayer.json")
+	config, _ = loadConfig(config, "./configs/relayer.json")
 
-	config, _ = loadConfig(config, "../configs/server.json")
+	config, _ = loadConfig(config, "./configs/server.json")
 
 	chains := config.Chains
 	relayer := config.Relayer
