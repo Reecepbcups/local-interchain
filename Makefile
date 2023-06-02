@@ -1,4 +1,8 @@
-run:
-	cd src && $(MAKE) run
+# TODO: Right now putting here there is no way to specifiy where we have the configs
+build:
+	go build -o ./bin/local-ic ./src
 
-.PHONY: run
+run:
+	./bin/local-ic
+
+.PHONY: build run
