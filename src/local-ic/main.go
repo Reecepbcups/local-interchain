@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -15,6 +17,9 @@ import (
 
 // TestLocalChains runs local IBC chain(s) easily.
 func main() {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -144,12 +149,16 @@ func main() {
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
 	logger.Info("Waiting for blocks", zap.Int("blocks", ttlWait), zap.String("chain", longestTTLChain.Config().ChainID))
 
-	go testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain)
+	// Cleanup if a signal is sent to the program.
+	// Do with context? https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
+	go func() {
+		<-sigs
+		_ = ic.Close()
+		WriteRunningChains([]byte("{}"))
+		os.Exit(0)
+	}()
 
-	// TODO: properly like:
-	// https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
-	// wait for ctx to be done, and if so run close()
-	<-ctx.Done()
-	_ = ic.Close()
-	WriteRunningChains([]byte("{}"))
+	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
+		logger.Fatal("testutil.WaitForBlocks", zap.Error(err))
+	}
 }
