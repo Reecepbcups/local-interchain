@@ -73,7 +73,6 @@ func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, 
 func getLoggerConfig() zap.Config {
 	config := zap.NewDevelopmentConfig()
 
-	// Customize the configuration according to your needs
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 

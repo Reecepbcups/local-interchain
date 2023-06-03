@@ -55,7 +55,6 @@ func (t FakeTesting) Fatal(...any) {
 func (t FakeTesting) Helper() {
 }
 
-// Logf
 func (t FakeTesting) Logf(format string, args ...any) {
 	fmt.Printf(format, args...)
 }
