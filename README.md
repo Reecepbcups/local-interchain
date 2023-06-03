@@ -27,6 +27,13 @@ make install
 
 ---
 
+## Endpoints
+
+- (POST) localhost:8080/
+- (POST) localhost:8080/upload
+- (GET)  localhost:8080/info
+
+
 ## Helpful Tips
 
 - After starting the chain(s), you can read the `./configs/logs.json` file to get useful information. This includes the chain's id, name, RPC address, and more.
@@ -90,7 +97,7 @@ Here is a base chain template with every feature the configuration accepts. Acco
     "number-node": 0,
     "blocks-ttl": -1,
     "use-new-genesis-command": false,
-    "ibc-paths": []"juno-ibc-1"],
+    "ibc-paths": ["juno-ibc-1"],
     "debugging": true,
     "encoding-options": ["juno"],
     "genesis": {
@@ -105,7 +112,7 @@ Here is a base chain template with every feature the configuration accepts. Acco
             },
             {
                 "key": "app_state.gov.deposit_params.min_deposit.0.denom",
-                "val": "%DENOM%"
+                "val": "ujuno"
             }
         ],     
         "accounts": [

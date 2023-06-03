@@ -129,7 +129,7 @@ func main() {
 
 	// Starts a non blocking REST server to take action on the chain.
 	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint?)
-	go StartNonBlockingServer(ctx, config, vals)
+	go StartNonBlockingServer(ctx, config, vals, configDir)
 
 	AddGenesisKeysToKeyring(ctx, config, chains)
 
