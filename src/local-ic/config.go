@@ -64,16 +64,18 @@ type DockerImage struct {
 	UidGid     string `json:"uid-gid"`
 }
 
+type GenesisAccount struct {
+	Name     string `json:"name"`
+	Amount   string `json:"amount"`
+	Address  string `json:"address"`
+	Mnemonic string `json:"mnemonic"`
+}
+
 type Genesis struct {
 	// Only apart of my fork for now.
 	Modify []cosmos.GenesisKV `json:"modify"` // 'key' & 'val' in the config.
 
-	Accounts []struct {
-		Name     string `json:"name"`
-		Amount   string `json:"amount"`
-		Address  string `json:"address"`
-		Mnemonic string `json:"mnemonic"`
-	} `json:"accounts"`
+	Accounts []GenesisAccount `json:"accounts"`
 
 	// A list of commands which run after chains are good to go.
 	// May need to move out of genesis into its own section? Seems silly though.
@@ -208,6 +210,21 @@ func (chain *Chain) setChainDefaults() {
 
 	if chain.TrustingPeriod == "" {
 		chain.TrustingPeriod = "112h"
+	}
+
+	if chain.IBCPaths == nil {
+		chain.IBCPaths = []string{}
+	}
+
+	// Genesis
+	if chain.Genesis.StartupCommands == nil {
+		chain.Genesis.StartupCommands = []string{}
+	}
+	if chain.Genesis.Accounts == nil {
+		chain.Genesis.Accounts = []GenesisAccount{}
+	}
+	if chain.Genesis.Modify == nil {
+		chain.Genesis.Modify = []cosmos.GenesisKV{}
 	}
 
 	// TODO: Error here instead?

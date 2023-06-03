@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -62,7 +63,7 @@ func main() {
 	cf := interchaintest.NewBuiltinChainFactory(logger, chainSpecs)
 
 	// Get chains from the chain factory
-	name := "LocalChains" + chainCfgFile
+	name := "ic-" + strings.ReplaceAll(chainCfgFile, ".json", "")
 	chains, err := cf.Chains(name)
 	if err != nil {
 		log.Fatal("cf.Chains", err)

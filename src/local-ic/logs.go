@@ -45,6 +45,11 @@ func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, 
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 
+		ibcPaths := chain.IBCPaths
+		if ibcPaths == nil {
+			ibcPaths = []string{}
+		}
+
 		// TODO: save another log for relayer info instead?
 		log := LogOutput{
 			// TODO: Rest API Address?
@@ -52,7 +57,7 @@ func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, 
 			ChainName:   chainObj.Config().Name,
 			RPCAddress:  chainObj.GetHostRPCAddress(),
 			GRPCAddress: chainObj.GetHostGRPCAddress(),
-			IBCPath:     chain.IBCPaths,
+			IBCPath:     ibcPaths,
 		}
 
 		if chain.BlocksTTL > ttlWait {
