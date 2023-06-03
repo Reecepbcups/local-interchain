@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -24,13 +25,12 @@ type LogOutput struct {
 	IBCPath     []string `json:"ibc-paths"`
 }
 
-const filename = "./configs/logs.json"
-
-func WriteRunningChains(bz []byte) {
-	_ = os.WriteFile(filename, bz, 0644)
+func WriteRunningChains(configsDir string, bz []byte) {
+	filepath := filepath.Join(configsDir, "configs", "logs.json")
+	_ = os.WriteFile(filepath, bz, 0644)
 }
 
-func DumpChainsInfoToLogs(logger *zap.Logger, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
+func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
 	// This may be un-needed.
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
@@ -64,7 +64,7 @@ func DumpChainsInfoToLogs(logger *zap.Logger, config *MainConfig, chains []ibc.C
 	}
 
 	bz, _ := json.MarshalIndent(mainLogs, "", "  ")
-	WriteRunningChains([]byte(bz))
+	WriteRunningChains(configDir, []byte(bz))
 
 	return longestTTLChain, ttlWait
 }

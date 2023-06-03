@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
-	"os/signal"
-	"syscall"
+	"path/filepath"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -17,38 +17,33 @@ import (
 
 // TestLocalChains runs local IBC chain(s) easily.
 func main() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Logger for ICTest functions only.
 	logger, err := InitLogger()
 	if err != nil {
 		panic(err)
 	}
 
+	configDir := getDirectory()
 	chainCfgFile := os.Getenv("CONFIG")
-	config, err := LoadConfig(chainCfgFile)
+	config, err := LoadConfig(configDir, chainCfgFile)
 	if err != nil {
 		panic(err)
 	}
 
-	WriteRunningChains([]byte("{}"))
+	WriteRunningChains(configDir, []byte("{}"))
 
 	// ibc-path-name -> index of []cosmos.CosmosChain
 	ibcpaths := make(map[string][]int)
 	chainSpecs := []*interchaintest.ChainSpec{}
 
 	for idx, cfg := range config.Chains {
-		// logger.Info("Chain Config", zap.Int("index", idx), zap.Any("config", cfg))
-
 		_, chainSpec := CreateChainConfigs(cfg)
 		chainSpecs = append(chainSpecs, chainSpec)
 
 		if len(cfg.IBCPaths) > 0 {
-			// logger.Info("IBC Path", zap.Strings("paths", cfg.IBCPaths), zap.String("chain", cfg.Name))
-
 			for _, path := range cfg.IBCPaths {
 				ibcpaths[path] = append(ibcpaths[path], idx)
 			}
@@ -56,7 +51,7 @@ func main() {
 	}
 
 	if err := VerifyIBCPaths(ibcpaths); err != nil {
-		logger.Fatal("VerifyIBCPaths", zap.Error(err))
+		log.Fatal("VerifyIBCPaths", err)
 	}
 
 	// Create chain factory for all the chains
@@ -66,7 +61,7 @@ func main() {
 	name := "LocalChains" + chainCfgFile
 	chains, err := cf.Chains(name)
 	if err != nil {
-		logger.Fatal("cf.Chains", zap.Error(err))
+		log.Fatal("cf.Chains", err)
 	}
 
 	// Create a new Interchain object which describes the chains, relayers, and IBC connections we want to use
@@ -86,7 +81,7 @@ func main() {
 
 	client, network := interchaintest.DockerSetup(fakeT)
 
-	// setup a relayer if we have IBC paths to use, then use a relayer
+	// setup a relayer if we have IBC paths to use.
 	var relayer ibc.Relayer
 	if len(ibcpaths) > 0 {
 		rlyCfg := config.Relayer
@@ -133,32 +128,39 @@ func main() {
 	}
 
 	// Starts a non blocking REST server to take action on the chain.
-	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint.)
+	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint?)
 	go StartNonBlockingServer(ctx, config, vals)
 
 	AddGenesisKeysToKeyring(ctx, config, chains)
 
 	// run commands for each server after startup. Iterate chain configs
-	PostStartupCommands(ctx, logger, config, chains)
+	PostStartupCommands(ctx, config, chains)
 
 	connections := GetChannelConnections(ctx, ibcpaths, chains, ic, relayer, eRep)
 
 	// Save to logs.json file for runtime chain information.
-	longestTTLChain, ttlWait := DumpChainsInfoToLogs(logger, config, chains, connections)
+	longestTTLChain, ttlWait := DumpChainsInfoToLogs(configDir, config, chains, connections)
 
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
-	logger.Info("Waiting for blocks", zap.Int("blocks", ttlWait), zap.String("chain", longestTTLChain.Config().ChainID))
+	log.Println("Waiting for blocks", ttlWait, longestTTLChain.Config().ChainID)
 
-	// Cleanup if a signal is sent to the program.
 	// Do with context? https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
-	go func() {
-		<-sigs
-		_ = ic.Close()
-		WriteRunningChains([]byte("{}"))
-		os.Exit(0)
-	}()
 
 	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
-		logger.Fatal("testutil.WaitForBlocks", zap.Error(err))
+		log.Fatal("testutil.WaitForBlocks", err)
 	}
+}
+
+func getDirectory() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("os.UserHomeDir", err)
+	}
+
+	configDir := os.Getenv("CONFIG_DIR")
+	if configDir != "" {
+		return configDir
+	}
+
+	return filepath.Join(homeDir, "local-interchain")
 }

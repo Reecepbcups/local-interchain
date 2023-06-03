@@ -4,11 +4,24 @@ A simple way to config and run IBC local chain testing environments using [Stran
 
 **This will eventually get phased out and brought into the ICTest repo directly.** Just doing it here for ease of creation & for a future simple public archive.
 
+## Installing
+
+```bash
+cd $HOME
+
+git clone https://github.com/Reecepbcups/local-interchain.git 
+
+cd local-interchain
+
+make install
+```
+
 ## Running
 
 - *(optional)* Edit `./configs/relayer.json`
 - Copy: `cp ./configs/chains.json ./configs/mytest1_chains.json`
-- Run: `CONFIG=mytest1_chains.json make run`
+- Run: `CONFIG=mytest1_chains.json local-ic`
+- Change directory `CONFIG_DIR=/root/example/local-interchain CONFIG=myother_chains.json local-ic`
 
 *(Not using 'CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
 

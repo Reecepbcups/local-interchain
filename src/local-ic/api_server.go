@@ -12,7 +12,7 @@ import (
 )
 
 // start as `go StartNonBlockingServer()`
-func StartNonBlockingServer(ctx context.Context, config *MainConfig, vals map[string]*cosmos.ChainNode) {
+func StartNonBlockingServer(ctx context.Context, config *Config, vals map[string]*cosmos.ChainNode) {
 	// TODO: Multiple in 1?
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
