@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -27,7 +27,7 @@ type LogOutput struct {
 const filename = "./configs/logs.json"
 
 func WriteRunningChains(bz []byte) {
-	_ = ioutil.WriteFile(filename, bz, 0644)
+	_ = os.WriteFile(filename, bz, 0644)
 }
 
 func DumpChainsInfoToLogs(logger *zap.Logger, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {

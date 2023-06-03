@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 
 	"github.com/reecepbcups/localinterchain/src/util"
 
@@ -80,7 +80,7 @@ type Genesis struct {
 
 func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
 	// Load Chains
-	bytes, err := ioutil.ReadFile(filepath)
+	bytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
