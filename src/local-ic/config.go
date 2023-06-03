@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -101,6 +102,9 @@ func LoadConfig(configDirectory, chainCfgFile string) (*Config, error) {
 		configFile = chainCfgFile
 	}
 
+	log.Println("Using config directory:", configDirectory)
+	log.Println("Using chain config:", chainCfgFile)
+
 	configsDir := filepath.Join(configDirectory, "configs")
 
 	cfgFilePath := filepath.Join(configsDir, configFile)
@@ -114,21 +118,21 @@ func LoadConfig(configDirectory, chainCfgFile string) (*Config, error) {
 	config, _ = loadConfig(config, relayerFilePath)
 	config, _ = loadConfig(config, serverFilePath)
 
-	fmt.Printf("Loaded %v\n", config)
-
 	chains := config.Chains
 	relayer := config.Relayer
 
 	for i := range chains {
 		chain := chains[i]
 		chain.setChainDefaults()
-		// Replace all string instances of %DENOM% with the chain's denom.
-		// Even in nested structs, slices/arrays, etc.
 		util.ReplaceStringValues(&chain, "%DENOM%", chain.Denom)
 		util.ReplaceStringValues(&chain, "%BIN%", chain.Binary)
 		util.ReplaceStringValues(&chain, "%CHAIN_ID%", chain.ChainID)
 
 		chains[i] = chain
+
+		if config.Chains[i].Debugging {
+			fmt.Printf("Loaded %v\n", config)
+		}
 	}
 
 	config.Relayer = relayer.setRelayerDefaults()

@@ -34,7 +34,7 @@
                     },
                     {
                         "key": "app_state.gov.deposit_params.min_deposit.0.denom",
-                        "val": "%DENOM%"
+                        "val": "ujuno"
                     }
                 ],     
                 "accounts": [
