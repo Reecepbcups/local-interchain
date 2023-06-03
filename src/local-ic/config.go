@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
+	"path/filepath"
 
 	"github.com/reecepbcups/localinterchain/src/util"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
-type MainConfig struct {
+type Config struct {
 	Chains  []Chain    `json:"chains"`
 	Relayer Relayer    `json:"relayer"`
 	Server  RestServer `json:"server"`
@@ -78,9 +79,8 @@ type Genesis struct {
 	StartupCommands []string `json:"startup-commands"`
 }
 
-func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
-	// Load Chains
-	bytes, err := ioutil.ReadFile(filepath)
+func loadConfig(config *Config, filepath string) (*Config, error) {
+	bytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -93,21 +93,28 @@ func loadConfig(config *MainConfig, filepath string) (*MainConfig, error) {
 	return config, nil
 }
 
-func LoadConfig(chainCfgFile string) (*MainConfig, error) {
-	var config *MainConfig
+func LoadConfig(configDirectory, chainCfgFile string) (*Config, error) {
+	var config *Config
 
-	filePath := "../configs/chains.json"
+	configFile := "chains.json"
 	if chainCfgFile != "" {
-		filePath = "../configs/" + chainCfgFile
+		configFile = chainCfgFile
 	}
 
-	config, err := loadConfig(config, filePath)
+	configsDir := filepath.Join(configDirectory, "configs")
+
+	cfgFilePath := filepath.Join(configsDir, configFile)
+	relayerFilePath := filepath.Join(configsDir, "relayer.json")
+	serverFilePath := filepath.Join(configsDir, "server.json")
+
+	config, err := loadConfig(config, cfgFilePath)
 	if err != nil {
 		return nil, err
 	}
-	config, _ = loadConfig(config, "../configs/relayer.json")
+	config, _ = loadConfig(config, relayerFilePath)
+	config, _ = loadConfig(config, serverFilePath)
 
-	config, _ = loadConfig(config, "../configs/server.json")
+	fmt.Printf("Loaded %v\n", config)
 
 	chains := config.Chains
 	relayer := config.Relayer

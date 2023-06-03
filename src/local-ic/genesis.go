@@ -2,31 +2,32 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"strings"
-	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
-func AddGenesisKeysToKeyring(ctx context.Context, config *MainConfig, chains []ibc.Chain) {
+func AddGenesisKeysToKeyring(ctx context.Context, config *Config, chains []ibc.Chain) {
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 
 		for _, acc := range chain.Genesis.Accounts {
-			chainObj.RecoverKey(ctx, acc.Name, acc.Mnemonic)
+			if err := chainObj.RecoverKey(ctx, acc.Name, acc.Mnemonic); err != nil {
+				panic(err)
+			}
 		}
 	}
 }
 
-func PostStartupCommands(ctx context.Context, t *testing.T, config *MainConfig, chains []ibc.Chain) {
+func PostStartupCommands(ctx context.Context, config *Config, chains []ibc.Chain) {
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 
 		for _, cmd := range chain.Genesis.StartupCommands {
-			t.Log("\nRunning startup command on", chainObj.Config().ChainID, "-->", fmt.Sprintf("`%s`", cmd))
+			log.Println("Running startup command", chainObj.Config().ChainID, cmd)
 
 			cmd = strings.ReplaceAll(cmd, "%HOME%", chainObj.Validators[0].HomeDir())
 			cmd = strings.ReplaceAll(cmd, "%CHAIN_ID%", chainObj.Config().ChainID)
@@ -37,15 +38,15 @@ func PostStartupCommands(ctx context.Context, t *testing.T, config *MainConfig, 
 			if len(output) == 0 {
 				output = stderr
 			} else if err != nil {
-				t.Fatalf("Error running startup command: %s\n%s", cmd, output)
+				log.Println("Error running startup command", chainObj.Config().ChainID, cmd, err)
 			}
 
-			t.Log(string(output))
+			log.Println("Startup command output", chainObj.Config().ChainID, cmd, string(output))
 		}
 	}
 }
 
-func SetupGenesisWallets(config *MainConfig, chains []ibc.Chain) map[ibc.Chain][]ibc.WalletAmount {
+func SetupGenesisWallets(config *Config, chains []ibc.Chain) map[ibc.Chain][]ibc.WalletAmount {
 	// iterate all chains chain's configs & setup accounts
 	additionalWallets := make(map[ibc.Chain][]ibc.WalletAmount)
 	for idx, chain := range config.Chains {

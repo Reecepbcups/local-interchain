@@ -4,15 +4,35 @@ A simple way to config and run IBC local chain testing environments using [Stran
 
 **This will eventually get phased out and brought into the ICTest repo directly.** Just doing it here for ease of creation & for a future simple public archive.
 
+## Installing
+
+```bash
+cd $HOME
+
+git clone https://github.com/Reecepbcups/local-interchain.git 
+
+cd local-interchain
+
+make install
+```
+
 ## Running
 
 - *(optional)* Edit `./configs/relayer.json`
 - Copy: `cp ./configs/chains.json ./configs/mytest1_chains.json`
-- Run: `CONFIG=mytest1_chains.json make run`
+- Run: `CONFIG=mytest1_chains.json local-ic`
+- Change directory `CONFIG_DIR=/root/example/local-interchain CONFIG=myother_chains.json local-ic`
 
 *(Not using 'CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
 
 ---
+
+## Endpoints
+
+- (POST) localhost:8080/
+- (POST) localhost:8080/upload
+- (GET)  localhost:8080/info
+
 
 ## Helpful Tips
 
@@ -77,7 +97,7 @@ Here is a base chain template with every feature the configuration accepts. Acco
     "number-node": 0,
     "blocks-ttl": -1,
     "use-new-genesis-command": false,
-    "ibc-paths": []"juno-ibc-1"],
+    "ibc-paths": ["juno-ibc-1"],
     "debugging": true,
     "encoding-options": ["juno"],
     "genesis": {
@@ -92,7 +112,7 @@ Here is a base chain template with every feature the configuration accepts. Acco
             },
             {
                 "key": "app_state.gov.deposit_params.min_deposit.0.denom",
-                "val": "%DENOM%"
+                "val": "ujuno"
             }
         ],     
         "accounts": [

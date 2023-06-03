@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"testing"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type MainLogs struct {
@@ -23,13 +25,12 @@ type LogOutput struct {
 	IBCPath     []string `json:"ibc-paths"`
 }
 
-const filename = "../configs/logs.json"
-
-func WriteRunningChains(bz []byte) {
-	_ = ioutil.WriteFile(filename, bz, 0644)
+func WriteRunningChains(configsDir string, bz []byte) {
+	filepath := filepath.Join(configsDir, "configs", "logs.json")
+	_ = os.WriteFile(filepath, bz, 0644)
 }
 
-func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
+func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
 	// This may be un-needed.
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
@@ -63,7 +64,27 @@ func DumpChainsInfoToLogs(t *testing.T, config *MainConfig, chains []ibc.Chain, 
 	}
 
 	bz, _ := json.MarshalIndent(mainLogs, "", "  ")
-	WriteRunningChains([]byte(bz))
+	WriteRunningChains(configDir, []byte(bz))
 
 	return longestTTLChain, ttlWait
+}
+
+// == Zap Logger ==
+func getLoggerConfig() zap.Config {
+	config := zap.NewDevelopmentConfig()
+
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	return config
+}
+
+func InitLogger() (*zap.Logger, error) {
+	config := getLoggerConfig()
+	logger, err := config.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	return logger, nil
 }
