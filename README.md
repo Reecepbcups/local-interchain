@@ -7,12 +7,12 @@ A simple way to config and run IBC local chain testing environments using [Stran
 ## Installing
 
 ```bash
-cd $HOME
-
 git clone https://github.com/Reecepbcups/local-interchain.git 
 
 cd local-interchain
 
+# NOTE: your binary will link back to this location of where you install.
+# If you rename the folder or move it, you need to `make install` the binary again.
 make install
 ```
 

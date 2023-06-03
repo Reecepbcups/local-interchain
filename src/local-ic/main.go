@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -13,6 +12,11 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"go.uber.org/zap"
+)
+
+// Makefile values
+var (
+	Version, InstallDirectory string
 )
 
 // TestLocalChains runs local IBC chain(s) easily.
@@ -152,15 +156,10 @@ func main() {
 }
 
 func getDirectory() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal("os.UserHomeDir", err)
-	}
-
 	configDir := os.Getenv("CONFIG_DIR")
 	if configDir != "" {
 		return configDir
 	}
 
-	return filepath.Join(homeDir, "local-interchain")
+	return InstallDirectory
 }
