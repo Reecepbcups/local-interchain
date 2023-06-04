@@ -18,7 +18,7 @@ import (
 
 // Makefile values
 var (
-	Version, InstallDirectory string
+	InstallDirectory string
 )
 
 // TestLocalChains runs local IBC chain(s) easily.

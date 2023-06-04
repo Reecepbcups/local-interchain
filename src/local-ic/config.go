@@ -23,15 +23,14 @@ type Config struct {
 
 type Chain struct {
 	// ibc chain config (optional)
-	ChainType            string   `json:"chain-type"`
-	CoinType             int      `json:"coin-type"`
-	Binary               string   `json:"binary"`
-	Bech32Prefix         string   `json:"bech32-prefix"`
-	Denom                string   `json:"denom"`
-	TrustingPeriod       string   `json:"trusting-period"`
-	Debugging            bool     `json:"debugging"`
-	EncodingOptions      []string `json:"encoding-options"`
-	UseNewGenesisCommand bool     `json:"use-new-genesis-command"`
+	ChainType            string `json:"chain-type"`
+	CoinType             int    `json:"coin-type"`
+	Binary               string `json:"binary"`
+	Bech32Prefix         string `json:"bech32-prefix"`
+	Denom                string `json:"denom"`
+	TrustingPeriod       string `json:"trusting-period"`
+	Debugging            bool   `json:"debugging"`
+	UseNewGenesisCommand bool   `json:"use-new-genesis-command"`
 
 	// Required
 	Name    string `json:"name"`
@@ -160,7 +159,7 @@ func CreateChainConfigs(cfg Chain) (ibc.ChainConfig, *interchaintest.ChainSpec) 
 		NoHostMount:            false,
 		ModifyGenesis:          cosmos.ModifyGenesis(cfg.Genesis.Modify),
 		ConfigFileOverrides:    nil,
-		EncodingConfig:         NewEncoding(cfg.EncodingOptions),
+		EncodingConfig:         nil,
 		UsingNewGenesisCommand: cfg.UseNewGenesisCommand,
 	}
 
