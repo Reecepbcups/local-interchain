@@ -32,10 +32,6 @@
                         "val": "15s"
                     },
                     {
-                        "key": "app_state.globalfee.params.minimum_gas_prices",
-                        "val": [{"amount":"0.000100000000000000","denom":"ujuno"}]
-                    },
-                    {
                         "key": "app_state.gov.deposit_params.min_deposit.0.denom",
                         "val": "ujuno"
                     }

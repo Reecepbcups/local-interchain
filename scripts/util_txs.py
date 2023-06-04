@@ -49,13 +49,13 @@ def get_chain_start_time_from_logs() -> int:
     return int(logs.get("start-time", -1))
 
 
-def _upload_file(URL: str, chain_id: str, key_name: str, rel_file_path: str) -> dict:
-    print(f"Uploading {rel_file_path}")
+def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
+    print(f"Uploading {abs_path}")
 
     data = {
         "chain-id": chain_id,
         "key-name": key_name,
-        "file-name": rel_file_path,
+        "file-name": abs_path,
     }
 
     url = URL
@@ -100,7 +100,7 @@ def update_cache(contracts: dict, code_id: str | int, sha_hash: str) -> int:
     return int(code_id)
 
 
-def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> int:
+def store_contract(bin_base: RequestBase, key_name: str, abs_path: str) -> int:
     ictest_chain_start = get_chain_start_time_from_logs()
     if ictest_chain_start == -1:
         return -1
@@ -112,13 +112,13 @@ def store_contract(bin_base: RequestBase, key_name: str, rel_file_path: str) -> 
 
     contracts = get_cache_or_default(contracts, ictest_chain_start)
 
-    sha1 = get_file_hash(rel_file_path)
+    sha1 = get_file_hash(abs_path)
     if sha1 in contracts["file_cache"]:
         codeId = contracts["file_cache"][sha1]
-        print(f"Using cached code id {codeId} for {rel_file_path}")
+        print(f"Using cached code id {codeId} for {abs_path}")
         return codeId
 
-    res = _upload_file(bin_base.URL, bin_base.chain_id, key_name, rel_file_path)
+    res = _upload_file(bin_base.URL, bin_base.chain_id, key_name, abs_path)
     if "error" in res:
         raise Exception(res["error"])
 

@@ -26,15 +26,27 @@ def main():
     send_request(bin_base, f"config keyring-backend test")
     FLAGS = "--home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
 
+    absolute_path = os.path.abspath(__file__)
+    parent_dir = os.path.dirname(os.path.dirname(absolute_path))
+    contracts_dir = os.path.join(parent_dir, "contracts")
+
     dao_proposal_single_code_id = store_contract(
-        bin_base, KEY_NAME, f"../contracts/dao_proposal_single.wasm"
+        bin_base,
+        KEY_NAME,
+        os.path.join(contracts_dir, "dao_proposal_single.wasm"),
     )
 
     dao_voting_native_staked_code_id = store_contract(
-        bin_base, KEY_NAME, f"../contracts/dao_voting_native_staked.wasm"
+        bin_base,
+        KEY_NAME,
+        os.path.join(contracts_dir, "dao_voting_native_staked.wasm"),
     )
 
-    dao_core_code_id = store_contract(bin_base, KEY_NAME, f"../contracts/dao_core.wasm")
+    dao_core_code_id = store_contract(
+        bin_base,
+        KEY_NAME,
+        os.path.join(contracts_dir, "dao_core.wasm"),
+    )
 
     # https://github.com/DA0-DA0/dao-contracts/blob/main/scripts/create-v2-dao-native-voting.sh
     MODULE_MSG = {
