@@ -31,14 +31,14 @@ func main() {
 		panic(err)
 	}
 
-	configDir := getDirectory()
+	installDir := getDirectory()
 	chainCfgFile := os.Getenv("CONFIG")
-	config, err := LoadConfig(configDir, chainCfgFile)
+	config, err := LoadConfig(installDir, chainCfgFile)
 	if err != nil {
 		panic(err)
 	}
 
-	WriteRunningChains(configDir, []byte("{}"))
+	WriteRunningChains(installDir, []byte("{}"))
 
 	// ibc-path-name -> index of []cosmos.CosmosChain
 	ibcpaths := make(map[string][]int)
@@ -134,7 +134,7 @@ func main() {
 
 	// Starts a non blocking REST server to take action on the chain.
 	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint?)
-	go StartNonBlockingServer(ctx, config, vals, configDir)
+	go StartNonBlockingServer(ctx, config, vals, installDir)
 
 	AddGenesisKeysToKeyring(ctx, config, chains)
 
@@ -144,7 +144,7 @@ func main() {
 	connections := GetChannelConnections(ctx, ibcpaths, chains, ic, relayer, eRep)
 
 	// Save to logs.json file for runtime chain information.
-	longestTTLChain, ttlWait := DumpChainsInfoToLogs(configDir, config, chains, connections)
+	longestTTLChain, ttlWait := DumpChainsInfoToLogs(installDir, config, chains, connections)
 
 	// TODO: Way for us to wait for blocks & show the tx logs during this time for each block?
 	log.Println("Waiting for blocks", ttlWait, longestTTLChain.Config().ChainID)
@@ -157,9 +157,9 @@ func main() {
 }
 
 func getDirectory() string {
-	configDir := os.Getenv("CONFIG_DIR")
-	if configDir != "" {
-		return configDir
+	installDir := os.Getenv("INSTALL_DIR")
+	if installDir != "" {
+		return installDir
 	}
 
 	return InstallDirectory
