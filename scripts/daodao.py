@@ -1,4 +1,7 @@
 """
+
+pip install httpx
+
 Steps:
 - Download contracts from the repo based off release version
 - Ensure ictest is started for a chain
@@ -8,7 +11,9 @@ Steps:
 """
 
 import os
+from base64 import b64decode
 
+import httpx
 from api_test import send_request
 from util_base import URL, contracts_path
 from util_contracts import b64encode, instantiate_contract, remove_spaces
@@ -142,9 +147,19 @@ def download_contracts():
         if os.path.exists(file_path):
             continue
 
-        cmd = f"junod q wasm code {codeId} {file_path}"
-        # print(cmd)
-        os.system(cmd)
+        print(f"Downloading {name}")
+        response = httpx.get(
+            f"https://api.juno.strange.love/cosmwasm/wasm/v1/code/{codeId}",
+            headers={
+                "accept": "application/json",
+            },
+            timeout=60,
+        )
+        data = response.json()
+
+        binary = b64decode(data["data"])
+        with open(file_path, "wb") as f:
+            f.write(binary)
 
 
 if __name__ == "__main__":
