@@ -21,7 +21,7 @@ make install
 - *(optional)* Edit `./configs/relayer.json`
 - Copy: `cp ./configs/chains.json ./configs/mytest1_chains.json`
 - Run: `CONFIG=mytest1_chains.json local-ic`
-- Change directory `CONFIG_DIR=/root/example/local-interchain CONFIG=myother_chains.json local-ic`
+- Change directory `INSTALL_DIR=/root/example/local-interchain CONFIG=myother_chains.json local-ic`
 
 *(Not using 'CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
 

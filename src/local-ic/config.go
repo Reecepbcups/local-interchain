@@ -96,7 +96,7 @@ func loadConfig(config *Config, filepath string) (*Config, error) {
 	return config, nil
 }
 
-func LoadConfig(configDirectory, chainCfgFile string) (*Config, error) {
+func LoadConfig(installDir, chainCfgFile string) (*Config, error) {
 	var config *Config
 
 	configFile := "chains.json"
@@ -104,14 +104,17 @@ func LoadConfig(configDirectory, chainCfgFile string) (*Config, error) {
 		configFile = chainCfgFile
 	}
 
-	log.Println("Using config directory:", configDirectory)
-	log.Println("Using chain config:", chainCfgFile)
+	// Chains Folder
+	chainsDir := filepath.Join(installDir, "chains")
+	cfgFilePath := filepath.Join(chainsDir, configFile)
 
-	configsDir := filepath.Join(configDirectory, "configs")
-
-	cfgFilePath := filepath.Join(configsDir, configFile)
+	// configs Folder
+	configsDir := filepath.Join(installDir, "configs")
 	relayerFilePath := filepath.Join(configsDir, "relayer.json")
 	serverFilePath := filepath.Join(configsDir, "server.json")
+
+	log.Println("Using directory:", installDir)
+	log.Println("Using chain config:", cfgFilePath)
 
 	config, err := loadConfig(config, cfgFilePath)
 	if err != nil {
