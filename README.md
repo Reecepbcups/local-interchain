@@ -126,3 +126,9 @@ Here is a base chain template with every feature the configuration accepts. Acco
     }
 },
 ```
+
+---
+
+## Run Interchain Test on Windows OS
+
+Follow [this guide](WINDOWS.md) to setup a Windows OS environment for running Interchain Test.
