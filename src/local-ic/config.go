@@ -99,7 +99,7 @@ func loadConfig(config *Config, filepath string) (*Config, error) {
 func LoadConfig(installDir, chainCfgFile string) (*Config, error) {
 	var config *Config
 
-	configFile := "chains.json"
+	configFile := "base.json"
 	if chainCfgFile != "" {
 		configFile = chainCfgFile
 	}
