@@ -1,8 +1,8 @@
-# Setup Windows Environment to Run [Interchain Test](https://github.com/strangelove-ventures/interchaintest)
+# Setup Windows Environment to Run [Local Interchain](https://github.com/Reecepbcups/local-interchain)
 
-This is a step-by-step guide to setup a Windows environment and add the missing dependencies to run [Local Interchain](https://github.com/Reecepbcups/local-interchain) (Will soon be pushed to the Interchain Test Repo)
+This is a step-by-step guide to setup a Windows environment and add the missing dependencies to run [Local Interchain](https://github.com/Reecepbcups/local-interchain)
 
-**Interchain Test enables developers to :-**
+**Local Interchain enables developers to :-**
 - Quickly spin up a local testnet for any wasm chain.
 - Test IBC connection compatibility on a high level between multiple local chains.
 - Execute binary commands such as `tx decode` *[see example](https://github.com/Reecepbcups/local-interchain/blob/main/scripts/api_test.py#L29-L33)*.
@@ -11,9 +11,9 @@ This is a step-by-step guide to setup a Windows environment and add the missing 
 - Configure chains to be launched within the testing environment, adjusting parameters such as gas options, number of validators, IBC paths, governance params, genesis accounts, and much more.
 - Configure IBC relayers.
 
-Interchain Test is the optimal playground for developers to flexibly test chain infrastructure and smart contract development.
+Local Interchain is the optimal playground for developers to flexibly test chain infrastructure and smart contract development.
 
-This guide aims to configure a Windows OS environment to be compatible with Interchain Test.
+This guide aims to configure a Windows OS environment to be compatible with Local Interchain.
 
 This will allow wasm chains to run locally on a Windows system which has been unprecedented until now.
 
@@ -93,7 +93,7 @@ GCC does not come with Windows, and the best compatible setup I've found was usi
 
 After finishing the steps above, open a new cmd or shell, and you will be able to run `gcc --version`
 
-## Running Interchain Test
+## Running Local Interchain
 
 1. Start the docker daemon by running **Docker Desktop** on Win 10/11 or using [**Docker Quickstart Terminal**](https://github.com/microsoft/docker/blob/master/docs/installation/windows.md#using-the-docker-quickstart-terminal) if you have installed Docker Toolbox.
 2. Clone the Local Interchain Repo.
@@ -107,6 +107,6 @@ cd local-interchain
 
 Wait for it to setup and go to *https://localhost:8080/info*, you should see each local chain running in its own docker container `docker ps`
 
-Now you are running a complete Interchain testing environment on a Windows operating system.
+Now you are running a complete local wasm IBC-connected environment on a Windows operating system.
 
 Happy building!
