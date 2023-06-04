@@ -18,7 +18,7 @@ make install
 ```
 **Install on Windows**
 
-Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installing local Interchain.
+Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installing Local Interchain.
 
 ## Running
 
