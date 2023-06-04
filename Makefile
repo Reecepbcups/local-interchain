@@ -4,7 +4,8 @@
  # Untested for Windows
 ifeq ($(OS),Windows_NT)
     # Run commands specific to Windows    
-    CWD := $(shell cd)
+    # CWD := $(shell echo %cd%)
+    CWD := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 else
     # Run commands specific to Unix        
     CWD := $(shell cd -P -- '$(shell dirname -- "$0")' && pwd -P)
