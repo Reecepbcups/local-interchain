@@ -63,7 +63,7 @@ func main() {
 	cf := interchaintest.NewBuiltinChainFactory(logger, chainSpecs)
 
 	// Get chains from the chain factory
-	name := "ic-" + strings.ReplaceAll(chainCfgFile, ".json", "")
+	name := strings.ReplaceAll(chainCfgFile, ".json", "") + "ic"
 	chains, err := cf.Chains(name)
 	if err != nil {
 		log.Fatal("cf.Chains", err)
