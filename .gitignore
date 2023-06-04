@@ -1,8 +1,8 @@
 bin/
 
 # Ignore custom chain configs. Ex: `CONFIG=mycustom_chains.json make run`
-chains/*_chains.json
-chains/*_chain.json
+chains/*_ignored.json
+chains/*_ignore.json
 
 configs/logs.json
 configs/contracts.json

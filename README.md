@@ -6,6 +6,7 @@ A simple way to config and run IBC local chain testing environments using [Stran
 
 ## Installing
 
+**Install on Mac / Linux**
 ```bash
 git clone https://github.com/Reecepbcups/local-interchain.git 
 
@@ -15,15 +16,18 @@ cd local-interchain
 # If you rename the folder or move it, you need to `make install` the binary again.
 make install
 ```
+**Install on Windows**
+
+Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installing local Interchain.
 
 ## Running
 
 - *(optional)* Edit `./configs/relayer.json`
-- Copy: `cp ./configs/chains.json ./configs/mytest1_chains.json`
-- Run: `CONFIG=mytest1_chains.json local-ic`
-- Change directory `INSTALL_DIR=/root/example/local-interchain CONFIG=myother_chains.json local-ic`
+- Copy: `cp ./configs/chains.json ./configs/mytest1_ignored.json`
+- Run: `CONFIG=mytest1_ignored.json local-ic`
+- Change directory `INSTALL_DIR=/root/example/local-interchain CONFIG=myother_ignored.json local-ic`
 
-*(Not using 'CONFIG' will default to `./configs/chains.json`. You can have as many chain configurations as you desire. Ending the file with `_chains.json` will ignore it from git)*
+*(Not using 'CONFIG' will default to `./configs/base.json`. You can have as many chain configurations as you desire. Ending the file with `_ignored.json` will ignore it from git)*
 
 ---
 
