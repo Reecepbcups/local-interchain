@@ -102,7 +102,8 @@ git clone https://github.com/Reecepbcups/local-interchain.git
 cd local-interchain
 ```
 3. Run `make install`
-4. Run `local-ic`
+4. *(Optional)* Run `set CONFIG=chains.json` replace `chains.json` by your chain configuration file located in `./configs/`
+5. Run `local-ic`
 
 Wait for it to setup and go to *https://localhost:8080/info*, you should see each local chain running in its own docker container `docker ps`
 
