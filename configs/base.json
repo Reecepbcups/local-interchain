@@ -1,0 +1,60 @@
+{    
+    "chains": [
+        {
+            "name": "juno",            
+            "chain-id": "localjuno-1",
+            "denom": "ujuno",
+            "binary": "junod",
+            "bech32-prefix": "juno",
+            "docker-image": {
+                "repository": "ghcr.io/cosmoscontracts/juno-e2e",
+                "version": "v14.1.0"
+            },
+            "use-new-genesis-command": false,
+            "gas-prices": "0%DENOM%",
+            "chain-type": "cosmos",
+            "coin-type": 118,
+            "trusting-period": "112h",
+            "gas-adjustment": 2.0,
+            "number-vals": 1,
+            "number-node": 0,
+            "blocks-ttl": -1,            
+            "debugging": true,            
+            "encoding-options": ["juno"],
+            "genesis": {
+                "modify": [
+                    {
+                        "key": "app_state.gov.voting_params.voting_period",
+                        "val": "15s"
+                    },
+                    {
+                        "key": "app_state.gov.deposit_params.max_deposit_period",
+                        "val": "15s"
+                    },
+                    {
+                        "key": "app_state.globalfee.params.minimum_gas_prices",
+                        "val": [{"amount":"0.000100000000000000","denom":"ujuno"}]
+                    },
+                    {
+                        "key": "app_state.gov.deposit_params.min_deposit.0.denom",
+                        "val": "ujuno"
+                    }
+                ],     
+                "accounts": [
+                    {
+                        "name": "acc0",
+                        "address": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
+                        "amount": "10000000000%DENOM%",
+                        "mnemonic": "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry"
+                    },
+                    {
+                        "name": "acc1",
+                        "address": "juno1hj5fveer5cjtn4wd6wstzugjfdxzl0xps73ftl",
+                        "amount": "10000000000%DENOM%",
+                        "mnemonic": "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise"
+                    }
+                ]               
+            }
+        }
+    ]
+}

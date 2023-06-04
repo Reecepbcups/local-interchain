@@ -12,9 +12,14 @@ ifeq (,$(VERSION))
   endif
 endif
 
-# MacOS / Linux only?
-SHELL := /bin/bash
-CWD := $(shell cd -P -- '$(shell dirname -- "$0")' && pwd -P)
+ # Untested for Windows
+ifeq ($(OS),Windows_NT)
+    # Run commands specific to Windows    
+    CWD := $(shell cd)
+else
+    # Run commands specific to Unix        
+    CWD := $(shell cd -P -- '$(shell dirname -- "$0")' && pwd -P)
+endif
 
 ldflags = -X main.InstallDirectory=$(CWD) -X main.Commit=$(COMMIT) -X main.Version=$(VERSION)
 ldflags := $(strip $(ldflags))
