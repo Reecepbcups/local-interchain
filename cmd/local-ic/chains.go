@@ -1,12 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 
 	"github.com/spf13/cobra"
 )
+
+type chains struct {
+	Configs []string `json:"chain_configs"`
+}
 
 var chainsCmd = &cobra.Command{
 	Use:   "chains [config.json]",
@@ -19,10 +24,10 @@ var chainsCmd = &cobra.Command{
 		chainsDir := path.Join(GetDirectory(), "chains")
 
 		if len(args) == 0 {
-			files := GetFiles()
-			for _, file := range files {
-				fmt.Printf("- %s\n", file)
-			}
+			configs := chains{GetFiles()}
+
+			bz, _ := json.MarshalIndent(configs, "", "  ")
+			fmt.Printf("%s\n", bz)
 		} else {
 			config := args[0]
 			filePath := path.Join(chainsDir, config)
