@@ -8,7 +8,7 @@ This is a step-by-step guide to setup a Windows environment and add the missing 
 - Execute binary commands such as `tx decode` *[see example](https://github.com/Reecepbcups/local-interchain/blob/main/scripts/api_test.py#L29-L33)*.
 - Store and execute wasm smart contracts *[see example](https://github.com/Reecepbcups/local-interchain/blob/main/scripts/daodao.py)*.
 - Local RPC node + REST API which enables building scripts with any language.
-- Configure chains to be launched within the testing environment, adjusting parameters such as gas options, number of validators, IBC paths, governance params, genesis accounts, and much more.
+- Configure chains to be launched within the testing environment, adjusting parameters such as gas options, number of validators, IBC paths, governance parameters, genesis accounts, and much more.
 - Configure IBC relayers.
 
 Local Interchain is the optimal playground for developers to flexibly test chain infrastructure and smart contract development.
@@ -18,6 +18,7 @@ This guide aims to configure a Windows OS environment to be compatible with Loca
 This will allow wasm chains to run locally on a Windows system which has been unprecedented until now.
 
 ## Requirements
+
 1. Make sure the Windows version is compatible with [Docker](https://www.docker.com/).
 
 **Windows Desktop**: Win 7 or higher
@@ -32,6 +33,7 @@ If your Windows system is missing Hyper-V, you can follow [this guide](https://w
 3. Permissions to run software installers and write to Program Files.
 
 ## Environment Setup
+
 ### 1. Installing Docker
 Make sure you have wsl installed, you can check by running **Windows PowerShell** as adminstrator and running `wsl --install` which would install wsl2 if missing.
 
@@ -102,10 +104,9 @@ git clone https://github.com/Reecepbcups/local-interchain.git
 cd local-interchain
 ```
 3. Run `make install`
-4. *(Optional)* Run `set CONFIG=chains.json` replace `chains.json` by your chain configuration file located in `./configs/`
-5. Run `local-ic`
+4. Run `local-ic start base.json`
 
-Wait for it to setup and go to *https://localhost:8080/info*, you should see each local chain running in its own docker container `docker ps`
+Wait for it to set up and go to *https://localhost:8080/info*, you should see each local chain running in its own docker container `docker ps`
 
 Now you are running a complete local wasm IBC-connected environment on a Windows operating system.
 

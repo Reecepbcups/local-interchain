@@ -24,10 +24,10 @@ Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installi
 
 - *(optional)* Edit `./configs/relayer.json`
 - Copy: `cp ./configs/chains.json ./configs/mytest1_ignored.json`
-- Run: `CONFIG=mytest1_ignored.json local-ic`
-- Change directory `INSTALL_DIR=/root/example/local-interchain CONFIG=myother_ignored.json local-ic`
+- Run: `local-ic start mytest1_ignored.json`
+- Change directory `INSTALL_DIR=/root/example/local-interchain local-ic start myother_ignored.json`
 
-*(Not using 'CONFIG' will default to `./configs/base.json`. You can have as many chain configurations as you desire. Ending the file with `_ignored.json` will ignore it from git)*
+*(Ending the config file with `_ignored.json` or `_ignore.json` will ignore it from git)*
 
 ---
 
@@ -36,7 +36,6 @@ Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installi
 - (POST) localhost:8080/
 - (POST) localhost:8080/upload
 - (GET)  localhost:8080/info
-
 
 ## Helpful Tips
 
