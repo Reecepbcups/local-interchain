@@ -1,4 +1,4 @@
-package main
+package interchain
 
 import (
 	"context"
@@ -15,7 +15,6 @@ import (
 
 // start as `go StartNonBlockingServer()`
 func StartNonBlockingServer(ctx context.Context, config *Config, vals map[string]*cosmos.ChainNode, cfgDir string) {
-	// TODO: Multiple actions in 1?
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			handlePostRequest(w, r, ctx, vals)

@@ -1,4 +1,4 @@
-package main
+package interchain
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/reecepbcups/localinterchain/src/util"
+	"github.com/reecepbcups/localinterchain/interchain/util"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"

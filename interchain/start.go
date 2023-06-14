@@ -1,10 +1,9 @@
-package main
+package interchain
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
@@ -16,13 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Makefile values
-var (
-	InstallDirectory string
-)
-
-// TestLocalChains runs local IBC chain(s) easily.
-func main() {
+func StartChain(installDir, chainCfgFile string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -32,8 +25,6 @@ func main() {
 		panic(err)
 	}
 
-	installDir := getDirectory()
-	chainCfgFile := os.Getenv("CONFIG")
 	config, err := LoadConfig(installDir, chainCfgFile)
 	if err != nil {
 		panic(err)
@@ -78,7 +69,7 @@ func main() {
 	ic.AdditionalGenesisWallets = SetupGenesisWallets(config, chains)
 
 	fakeT := FakeTesting{
-		name: name,
+		FakeName: name,
 	}
 
 	// Base setup
@@ -157,13 +148,4 @@ func main() {
 	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
 		log.Fatal("testutil.WaitForBlocks", err)
 	}
-}
-
-func getDirectory() string {
-	installDir := os.Getenv("INSTALL_DIR")
-	if installDir != "" {
-		return installDir
-	}
-
-	return InstallDirectory
 }
