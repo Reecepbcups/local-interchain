@@ -40,6 +40,9 @@ Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installi
 
 ## Helpful Tips
 
+- Auto complete: edit ~/.bashrc or ~/.zshrc and add `source <(local-ic completion bash)` or `source <(local-ic completion zsh)`.
+    (fish & windows powershell is also supported)
+
 - After starting the chain(s), you can read the `./configs/logs.json` file to get useful information. This includes the chain's id, name, RPC address, and more.
 
 ```json

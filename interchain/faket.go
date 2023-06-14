@@ -1,4 +1,4 @@
-package main
+package interchain
 
 import (
 	"fmt"
@@ -12,12 +12,12 @@ type FakeI interface {
 }
 
 type FakeTesting struct {
-	name string
+	FakeName string
 }
 
 // impl all of testing.T for FakeTesting
 func (t FakeTesting) Name() string {
-	return t.name
+	return t.FakeName
 }
 
 func (t FakeTesting) Cleanup(func()) {
