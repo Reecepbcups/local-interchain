@@ -11,9 +11,16 @@ import (
 
 	interchain "github.com/reecepbcups/localinterchain/interchain"
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+
+	"github.com/tyler-smith/go-bip39"
 )
 
 var reader = bufio.NewReader(os.Stdin)
+
+type Chains struct {
+	Chains []interchain.Chain `json:"chains"`
+}
 
 var newChainCmd = &cobra.Command{
 	Use:     "new-chain <name>",
@@ -34,7 +41,7 @@ var newChainCmd = &cobra.Command{
 		// 	}
 		// }
 
-		var config interchain.Config
+		var config Chains
 		var chains []interchain.Chain
 
 		for i := 1; i < 1000; i++ {
@@ -50,7 +57,7 @@ var newChainCmd = &cobra.Command{
 				GasAdjustment: getOrDefaultFloat("Gas-Adjustment", 2.5),
 
 				// IBCPaths should be unique chain ids?
-				IBCPaths: strings.Split(getOrDefault("IBC Paths", "").(string), ","),
+				IBCPaths: parseIBCPaths(getOrDefault("IBC Paths", "").(string)),
 				DockerImage: interchain.DockerImage{
 					Repository: getOrDefault("Docker Repo", "ghcr.io/cosmoscontracts/juno-e2e").(string),
 					Version:    getOrDefault("Docker Tag/Branch Version", "v15.0.0").(string),
@@ -75,18 +82,19 @@ var newChainCmd = &cobra.Command{
 				NumberVals: 1,
 				NumberNode: 0,
 				BlocksTTL:  -1,
+				Genesis: interchain.Genesis{
+					Accounts:        generateRandomAccounts(),
+					Modify:          []cosmos.GenesisKV{},
+					StartupCommands: []string{},
+				},
 			}
 			chains = append(chains, c)
 
-			// break here
 			res, err := strconv.ParseBool(getOrDefault("\n\n\n === Add more chains? ===", "false").(string))
 			if err != nil || res == false {
 				break
 			}
 		}
-
-		// save c to file in GetD
-
 		config.Chains = chains
 
 		bz, err := json.MarshalIndent(config, "", "  ")
@@ -98,9 +106,52 @@ var newChainCmd = &cobra.Command{
 	},
 }
 
+func generateRandomAccounts() []interchain.GenesisAccount {
+	accounts := []interchain.GenesisAccount{}
+
+	num, err := strconv.Atoi(strings.ReplaceAll(getOrDefault("Number of accounts to generate", 1).(string), "\n", ""))
+	if err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < num; i++ {
+		entropy, _ := bip39.NewEntropy(256)
+		mnemonic, _ := bip39.NewMnemonic(entropy)
+
+		// load mnemonic into cosmossdk and get the address
+		accounts = append(accounts, interchain.GenesisAccount{
+			Name:     fmt.Sprintf("account%d", i),
+			Amount:   "100000%DENOM%", // allow user to alter along with keyname?
+			Address:  "",              // TODO:
+			Mnemonic: mnemonic,
+		})
+
+	}
+
+	return accounts
+}
+
+func parseIBCPaths(input string) []string {
+	if len(input) == 0 {
+		return []string{}
+	}
+
+	return strings.Split(input, ",")
+}
+
 // use generics to return the type of what defaultValue is?
 func getOrDefault(output string, defaultVal any) any {
-	fmt.Printf("%s. (Default %v)\n>>> ", output, defaultVal)
+
+	defautOutput := defaultVal
+	if _, ok := defaultVal.(string); ok && len(defautOutput.(string)) == 0 {
+		defautOutput = "''"
+	}
+	// for arrays and slices
+	if _, ok := defaultVal.([]string); ok && len(defautOutput.([]string)) == 0 {
+		defautOutput = "[]"
+	}
+
+	fmt.Printf("- %s. (Default %v)\n>>> ", output, defautOutput)
 	text, err := reader.ReadString('\n')
 
 	if err != nil || text == "\n" {
