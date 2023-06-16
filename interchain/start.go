@@ -27,7 +27,11 @@ func StartChain(installDir, chainCfgFile string) {
 
 	config, err := LoadConfig(installDir, chainCfgFile)
 	if err != nil {
-		panic(err)
+		// try again with .json, then if it still fails - panic
+		config, err = LoadConfig(installDir, chainCfgFile+".json")
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	WriteRunningChains(installDir, []byte("{}"))

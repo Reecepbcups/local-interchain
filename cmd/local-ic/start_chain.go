@@ -8,7 +8,7 @@ import (
 
 var startCmd = &cobra.Command{
 	Use:     "start <config.json>",
-	Aliases: []string{"s"},
+	Aliases: []string{"s", "run"},
 	Short:   "Starts up the chain of choice with the config name",
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
