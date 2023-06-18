@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -33,13 +35,13 @@ var newChainCmd = &cobra.Command{
 
 		// while loop to allow for IBC conncetions to work as expected. Else set IBC as []string{}
 
-		// text, _ := os.ReadFile(filePath)
-		// if len(text) > 0 {
-		// 	value := getOrDefault(fmt.Sprintf("File %s already exist at this location, override?", name), "false").(string)
-		// 	if res, _ := strconv.ParseBool(value); res == false {
-		// 		panic(fmt.Sprintf("File %s already exist", filePath))
-		// 	}
-		// }
+		text, _ := os.ReadFile(filePath)
+		if len(text) > 0 {
+			value := getOrDefault(fmt.Sprintf("File %s already exist at this location, override?", name), "false")
+			if res, _ := strconv.ParseBool(value); !res {
+				panic(fmt.Sprintf("File %s already exist", filePath))
+			}
+		}
 
 		var config Chains
 		var chains []ictypes.Chain
@@ -49,18 +51,18 @@ var newChainCmd = &cobra.Command{
 
 			c := ictypes.Chain{
 				// Required
-				Name:          getOrDefault("Name", "juno").(string),
-				ChainID:       getOrDefault("Chain-ID", "local-1").(string),
-				Binary:        getOrDefault("App Binary", "junod").(string),
-				Bech32Prefix:  getOrDefault("Bech32 Prefix", "juno").(string),
-				GasPrices:     getOrDefault("Gas-Prices (comma seperated)", "0%DENOM%,0other").(string),
-				GasAdjustment: getOrDefaultFloat("Gas-Adjustment", 2.5),
+				Name:          getOrDefault("Name", "juno"),
+				ChainID:       getOrDefault("Chain-ID", "local-1"),
+				Binary:        getOrDefault("App Binary", "junod"),
+				Bech32Prefix:  getOrDefault("Bech32 Prefix", "juno"),
+				GasPrices:     getOrDefault("Gas-Prices (comma seperated)", "0ujuno,0other"),
+				GasAdjustment: getOrDefault("Gas-Adjustment", 2.5),
 
 				// IBCPaths should be unique chain ids?
-				IBCPaths: parseIBCPaths(getOrDefault("IBC Paths", "").(string)),
+				IBCPaths: parseIBCPaths(getOrDefault("IBC Paths", "")),
 				DockerImage: ictypes.DockerImage{
-					Repository: getOrDefault("Docker Repo", "ghcr.io/cosmoscontracts/juno-e2e").(string),
-					Version:    getOrDefault("Docker Tag/Branch Version", "v15.0.0").(string),
+					Repository: getOrDefault("Docker Repo", "ghcr.io/cosmoscontracts/juno-e2e"),
+					Version:    getOrDefault("Docker Tag/Branch Version", "v15.0.0"),
 					UidGid:     "1000:1000",
 				},
 
@@ -72,10 +74,10 @@ var newChainCmd = &cobra.Command{
 				// genesis accounts (juno1...:100ujuno,10uatom;)
 
 				// Spam through enter typically
-				Denom:          getOrDefault("Denom", "ujuno").(string),
-				TrustingPeriod: getOrDefault("Trusting Period", "112h").(string),
-				ChainType:      getOrDefault("Chain Type", "cosmos").(string),
-				CoinType:       getOrDefault("Coin Type", 118).(int),
+				Denom:          getOrDefault("Denom", "ujuno"),
+				TrustingPeriod: getOrDefault("Trusting Period", "112h"),
+				ChainType:      getOrDefault("Chain Type", "cosmos"),
+				CoinType:       getOrDefault("Coin Type", 118),
 
 				// defaults
 				Debugging:  false,
@@ -88,10 +90,15 @@ var newChainCmd = &cobra.Command{
 					StartupCommands: []string{},
 				},
 			}
+
+			if err := c.Validate(); err != nil {
+				panic(err)
+			}
+
 			chains = append(chains, c)
 
-			res, err := strconv.ParseBool(getOrDefault("\n\n\n === Add more chains? ===", "false").(string))
-			if err != nil || res == false {
+			res, err := strconv.ParseBool(getOrDefault[string]("\n\n\n === Add more chains? ===", "false"))
+			if err != nil || !res {
 				break
 			}
 		}
@@ -102,14 +109,17 @@ var newChainCmd = &cobra.Command{
 			panic(err)
 		}
 
-		os.WriteFile(filePath, bz, 777)
+		os.WriteFile(filePath, bz, 0777)
 	},
 }
+
+var nonNumeric = regexp.MustCompile("[^0-9]+")
 
 func generateRandomAccounts() []ictypes.GenesisAccount {
 	accounts := []ictypes.GenesisAccount{}
 
-	num, err := strconv.Atoi(strings.ReplaceAll(getOrDefault("Number of accounts to generate", 1).(string), "\n", ""))
+	res := nonNumeric.ReplaceAllString(getOrDefault("Number of accounts to generate", "1"), "")
+	num, err := strconv.Atoi(res)
 	if err != nil {
 		panic(err)
 	}
@@ -139,46 +149,39 @@ func parseIBCPaths(input string) []string {
 	return strings.Split(input, ",")
 }
 
-// use generics to return the type of what defaultValue is?
-func getOrDefault(output string, defaultVal any) any {
+func getOrDefault[T any](output string, defaultVal T) T {
+	defaultOutput := ""
 
-	defautOutput := defaultVal
-	if _, ok := defaultVal.(string); ok && len(defautOutput.(string)) == 0 {
-		defautOutput = "''"
-	}
-	// for arrays and slices
-	if _, ok := defaultVal.([]string); ok && len(defautOutput.([]string)) == 0 {
-		defautOutput = "[]"
-	}
+	defaultType := reflect.TypeOf(defaultVal).Kind()
 
-	fmt.Printf("- %s. (Default %v)\n>>> ", output, defautOutput)
-	text, err := reader.ReadString('\n')
-
-	if err != nil || text == "\n" {
-		// fmt.Printf("Set: %v\n", defaultVal)
-		return defaultVal
+	switch defaultType {
+	case reflect.String:
+		defaultOutput = any(defaultVal).(string)
+	case reflect.Int:
+		defaultOutput = strconv.Itoa(any(defaultVal).(int))
+	case reflect.Slice:
+		if reflect.TypeOf(defaultVal).Elem().Kind() == reflect.String {
+			defaultOutput = "[]"
+		}
 	}
 
-	return text
-}
+	if defaultOutput == "" && defaultType == reflect.String {
+		defaultOutput = "''"
+	}
 
-func getOrDefaultFloat(output string, defaultVal float64) float64 {
-	fmt.Printf("%s. (Default %v)\n>>> ", output, defaultVal)
+	fmt.Printf("- %s. (Default %v)\n>>> ", output, defaultOutput)
 	text, err := reader.ReadString('\n')
 
 	if err != nil || text == "\n" {
 		return defaultVal
 	}
 
-	text = strings.ReplaceAll(text, "\n", "")
-	res, err := strconv.ParseFloat(text, 64)
-	if err != nil {
-		panic(err)
+	if defaultType == reflect.String {
+		text = strings.ReplaceAll(text, "\n", "")
 	}
-	return res
-}
 
-//
+	return any(text).(T)
+}
 
 func init() {
 	rootCmd.AddCommand(newChainCmd)
