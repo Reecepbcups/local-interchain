@@ -69,6 +69,8 @@ func StartChain(installDir, chainCfgFile string) {
 
 	// Create a new Interchain object which describes the chains, relayers, and IBC connections we want to use
 	ic := interchaintest.NewInterchain()
+	defer ic.Close()
+
 	for _, chain := range chains {
 		ic = ic.AddChain(chain)
 	}
