@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"path/filepath"
 
+	types "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/reecepbcups/localinterchain/interchain/util"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
@@ -15,73 +15,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
-type Config struct {
-	Chains  []Chain    `json:"chains"`
-	Relayer Relayer    `json:"relayer"`
-	Server  RestServer `json:"server"`
-}
-
-type Chain struct {
-	// ibc chain config (optional)
-	ChainType            string `json:"chain-type"`
-	CoinType             int    `json:"coin-type"`
-	Binary               string `json:"binary"`
-	Bech32Prefix         string `json:"bech32-prefix"`
-	Denom                string `json:"denom"`
-	TrustingPeriod       string `json:"trusting-period"`
-	Debugging            bool   `json:"debugging"`
-	UseNewGenesisCommand bool   `json:"use-new-genesis-command"`
-
-	// Required
-	Name    string `json:"name"`
-	ChainID string `json:"chain-id"`
-
-	DockerImage DockerImage `json:"docker-image"`
-
-	GasPrices     string   `json:"gas-prices"`
-	GasAdjustment float64  `json:"gas-adjustment"`
-	NumberVals    int      `json:"number-vals"`
-	NumberNode    int      `json:"number-node"`
-	BlocksTTL     int      `json:"blocks-ttl"`
-	IBCPaths      []string `json:"ibc-paths"`
-	Genesis       Genesis  `json:"genesis"`
-}
-
-type Relayer struct {
-	DockerImage  DockerImage `json:"docker-image"`
-	StartupFlags []string    `json:"startup-flags"`
-}
-
-type RestServer struct {
-	Host string `json:"host"`
-	Port string `json:"port"`
-}
-
-type DockerImage struct {
-	Repository string `json:"repository"`
-	Version    string `json:"version"`
-	UidGid     string `json:"uid-gid"`
-}
-
-type GenesisAccount struct {
-	Name     string `json:"name"`
-	Amount   string `json:"amount"`
-	Address  string `json:"address"`
-	Mnemonic string `json:"mnemonic"`
-}
-
-type Genesis struct {
-	// Only apart of my fork for now.
-	Modify []cosmos.GenesisKV `json:"modify"` // 'key' & 'val' in the config.
-
-	Accounts []GenesisAccount `json:"accounts"`
-
-	// A list of commands which run after chains are good to go.
-	// May need to move out of genesis into its own section? Seems silly though.
-	StartupCommands []string `json:"startup-commands"`
-}
-
-func loadConfig(config *Config, filepath string) (*Config, error) {
+func loadConfig(config *types.Config, filepath string) (*types.Config, error) {
 	bytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -95,8 +29,8 @@ func loadConfig(config *Config, filepath string) (*Config, error) {
 	return config, nil
 }
 
-func LoadConfig(installDir, chainCfgFile string) (*Config, error) {
-	var config *Config
+func LoadConfig(installDir, chainCfgFile string) (*types.Config, error) {
+	var config *types.Config
 
 	configFile := "base.json"
 	if chainCfgFile != "" {
@@ -127,7 +61,7 @@ func LoadConfig(installDir, chainCfgFile string) (*Config, error) {
 
 	for i := range chains {
 		chain := chains[i]
-		chain.setChainDefaults()
+		chain.SetChainDefaults()
 		util.ReplaceStringValues(&chain, "%DENOM%", chain.Denom)
 		util.ReplaceStringValues(&chain, "%BIN%", chain.Binary)
 		util.ReplaceStringValues(&chain, "%CHAIN_ID%", chain.ChainID)
@@ -139,12 +73,12 @@ func LoadConfig(installDir, chainCfgFile string) (*Config, error) {
 		}
 	}
 
-	config.Relayer = relayer.setRelayerDefaults()
+	config.Relayer = relayer.SetRelayerDefaults()
 
 	return config, nil
 }
 
-func CreateChainConfigs(cfg Chain) (ibc.ChainConfig, *interchaintest.ChainSpec) {
+func CreateChainConfigs(cfg types.Chain) (ibc.ChainConfig, *interchaintest.ChainSpec) {
 	chainCfg := ibc.ChainConfig{
 		Type:                   cfg.ChainType,
 		Name:                   cfg.Name,
@@ -187,72 +121,4 @@ func CreateChainConfigs(cfg Chain) (ibc.ChainConfig, *interchaintest.ChainSpec) 
 	}
 
 	return chainCfg, chainSpecs
-}
-
-func (chain *Chain) setChainDefaults() {
-	if chain.BlocksTTL <= 0 {
-		chain.BlocksTTL = math.MaxInt32
-	}
-
-	if chain.ChainType == "" {
-		chain.ChainType = "cosmos"
-	}
-
-	if chain.CoinType == 0 {
-		chain.CoinType = 118
-	}
-
-	if chain.DockerImage.UidGid == "" {
-		chain.DockerImage.UidGid = "1025:1025"
-	}
-
-	if chain.NumberVals == 0 {
-		chain.NumberVals = 1
-	}
-
-	if chain.TrustingPeriod == "" {
-		chain.TrustingPeriod = "112h"
-	}
-
-	if chain.IBCPaths == nil {
-		chain.IBCPaths = []string{}
-	}
-
-	// Genesis
-	if chain.Genesis.StartupCommands == nil {
-		chain.Genesis.StartupCommands = []string{}
-	}
-	if chain.Genesis.Accounts == nil {
-		chain.Genesis.Accounts = []GenesisAccount{}
-	}
-	if chain.Genesis.Modify == nil {
-		chain.Genesis.Modify = []cosmos.GenesisKV{}
-	}
-
-	// TODO: Error here instead?
-	if chain.Binary == "" {
-		panic("'binary' is required in your config for " + chain.ChainID)
-	}
-	if chain.Denom == "" {
-		panic("'denom' is required in your config for " + chain.ChainID)
-	}
-	if chain.Bech32Prefix == "" {
-		panic("'bech32-prefix' is required in your config for " + chain.ChainID)
-	}
-}
-
-func (r Relayer) setRelayerDefaults() Relayer {
-	if r.DockerImage.Repository == "" {
-		r.DockerImage.Repository = "ghcr.io/cosmos/relayer"
-	}
-
-	if r.DockerImage.Version == "" {
-		r.DockerImage.Version = "latest"
-	}
-
-	if r.DockerImage.UidGid == "" {
-		r.DockerImage.UidGid = "100:1000"
-	}
-
-	return r
 }

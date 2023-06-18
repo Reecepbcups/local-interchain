@@ -4,14 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	types "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
-
-type IBCChannel struct {
-	ChainID string             `json:"chain-id"`
-	Channel *ibc.ChannelOutput `json:"channel"`
-}
 
 func VerifyIBCPaths(ibcpaths map[string][]int) error {
 	for k, v := range ibcpaths {
@@ -43,12 +39,12 @@ func LinkIBCPaths(ibcpaths map[string][]int, chains []ibc.Chain, ic *interchaint
 }
 
 // TODO: Get all channels a chain is connected too. Map it to the said chain-id. Then output to Logs.
-func GetChannelConnections(ctx context.Context, ibcpaths map[string][]int, chains []ibc.Chain, ic *interchaintest.Interchain, r ibc.Relayer, eRep ibc.RelayerExecReporter) []IBCChannel {
+func GetChannelConnections(ctx context.Context, ibcpaths map[string][]int, chains []ibc.Chain, ic *interchaintest.Interchain, r ibc.Relayer, eRep ibc.RelayerExecReporter) []types.IBCChannel {
 	if len(ibcpaths) == 0 {
-		return []IBCChannel{}
+		return []types.IBCChannel{}
 	}
 
-	channels := []IBCChannel{}
+	channels := []types.IBCChannel{}
 
 	for _, c := range ibcpaths {
 		chain1 := chains[c[0]]
@@ -59,7 +55,7 @@ func GetChannelConnections(ctx context.Context, ibcpaths map[string][]int, chain
 			panic(err)
 		}
 
-		channels = append(channels, IBCChannel{
+		channels = append(channels, types.IBCChannel{
 			ChainID: chain1.Config().ChainID,
 			Channel: channel1,
 		})
@@ -69,7 +65,7 @@ func GetChannelConnections(ctx context.Context, ibcpaths map[string][]int, chain
 		if err != nil {
 			panic(err)
 		}
-		channels = append(channels, IBCChannel{
+		channels = append(channels, types.IBCChannel{
 			ChainID: chain2.Config().ChainID,
 			Channel: channel2,
 		})

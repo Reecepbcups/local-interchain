@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
-func AddGenesisKeysToKeyring(ctx context.Context, config *Config, chains []ibc.Chain) {
+func AddGenesisKeysToKeyring(ctx context.Context, config *types.Config, chains []ibc.Chain) {
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 
@@ -22,7 +23,7 @@ func AddGenesisKeysToKeyring(ctx context.Context, config *Config, chains []ibc.C
 	}
 }
 
-func PostStartupCommands(ctx context.Context, config *Config, chains []ibc.Chain) {
+func PostStartupCommands(ctx context.Context, config *types.Config, chains []ibc.Chain) {
 	for idx, chain := range config.Chains {
 		chainObj := chains[idx].(*cosmos.CosmosChain)
 
@@ -46,7 +47,7 @@ func PostStartupCommands(ctx context.Context, config *Config, chains []ibc.Chain
 	}
 }
 
-func SetupGenesisWallets(config *Config, chains []ibc.Chain) map[ibc.Chain][]ibc.WalletAmount {
+func SetupGenesisWallets(config *types.Config, chains []ibc.Chain) map[ibc.Chain][]ibc.WalletAmount {
 	// iterate all chains chain's configs & setup accounts
 	additionalWallets := make(map[ibc.Chain][]ibc.WalletAmount)
 	for idx, chain := range config.Chains {
