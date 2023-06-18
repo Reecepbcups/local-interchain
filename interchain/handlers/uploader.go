@@ -37,7 +37,6 @@ func (u *upload) PostUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("UploadObj: %+v", upload)
 	log.Printf("Uploader: %+v", u)
 
 	chainId := upload.ChainId
