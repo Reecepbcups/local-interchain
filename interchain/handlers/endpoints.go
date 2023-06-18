@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/reecepbcups/localinterchain/interchain/util"
 )
 
 type endpoint struct {
@@ -32,9 +34,9 @@ func NewEndpoints() *endpoint {
 func (e *endpoint) GetEndpoints(w http.ResponseWriter, r *http.Request) {
 	jsonRes, err := json.MarshalIndent(endpoints, "", "  ")
 	if err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
-	Write(w, jsonRes)
+	util.Write(w, jsonRes)
 }

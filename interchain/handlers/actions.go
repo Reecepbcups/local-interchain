@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/reecepbcups/localinterchain/interchain/util"
+
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 )
 
@@ -32,14 +34,14 @@ func (a *actions) PostActions(w http.ResponseWriter, r *http.Request) {
 	var ah ActionHandler
 	err := json.NewDecoder(r.Body).Decode(&ah)
 	if err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
 	chainId := ah.ChainId
 	action := ah.Action
 	if _, ok := a.vals[chainId]; !ok {
-		Write(w, []byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
+		util.Write(w, []byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
 		return
 	}
 
@@ -73,6 +75,5 @@ func (a *actions) PostActions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send the response
-	Write(w, []byte(output))
-
+	util.Write(w, []byte(output))
 }

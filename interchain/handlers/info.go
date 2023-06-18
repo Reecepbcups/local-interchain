@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	types "github.com/reecepbcups/localinterchain/interchain/types"
+	util "github.com/reecepbcups/localinterchain/interchain/util"
 )
 
 type info struct {
@@ -33,13 +34,13 @@ func (i *info) GetInfo(w http.ResponseWriter, r *http.Request) {
 
 	bz, err := os.ReadFile(fp)
 	if err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
 	var logs types.MainLogs
 	if err := json.Unmarshal(bz, &logs); err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
@@ -51,9 +52,9 @@ func (i *info) GetInfo(w http.ResponseWriter, r *http.Request) {
 
 	jsonRes, err := json.MarshalIndent(info, "", "  ")
 	if err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
-	Write(w, jsonRes)
+	util.Write(w, jsonRes)
 }

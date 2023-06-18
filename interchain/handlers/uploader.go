@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/reecepbcups/localinterchain/interchain/util"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 )
 
@@ -28,28 +29,29 @@ func NewUploader(ctx context.Context, vals map[string]*cosmos.ChainNode) *upload
 	}
 }
 
-func (up *upload) PostUpload(w http.ResponseWriter, r *http.Request) {
+func (u *upload) PostUpload(w http.ResponseWriter, r *http.Request) {
 	var upload Uploader
-	err := json.NewDecoder(r.Body).Decode(&up)
+	err := json.NewDecoder(r.Body).Decode(&upload)
 	if err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
-	log.Printf("Uploader: %+v", up)
+	log.Printf("UploadObj: %+v", upload)
+	log.Printf("Uploader: %+v", u)
 
 	chainId := upload.ChainId
-	if _, ok := up.vals[chainId]; !ok {
-		Write(w, []byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
+	if _, ok := u.vals[chainId]; !ok {
+		util.Write(w, []byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
 		return
 	}
 
-	codeId, err := up.vals[chainId].StoreContract(up.ctx, upload.KeyName, upload.FileName)
+	codeId, err := u.vals[chainId].StoreContract(u.ctx, upload.KeyName, upload.FileName)
 
 	if err != nil {
-		WriteError(w, err)
+		util.WriteError(w, err)
 		return
 	}
 
-	Write(w, []byte(fmt.Sprintf(`{"code_id":%s}`, codeId)))
+	util.Write(w, []byte(fmt.Sprintf(`{"code_id":%s}`, codeId)))
 }
