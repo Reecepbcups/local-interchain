@@ -6,38 +6,26 @@ import (
 	"path/filepath"
 	"time"
 
+	types "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type MainLogs struct {
-	StartTime uint64       `json:"start-time"`
-	Chains    []LogOutput  `json:"chains"`
-	Channels  []IBCChannel `json:"ibc-channels"`
-}
-type LogOutput struct {
-	ChainID     string   `json:"chain-id"`
-	ChainName   string   `json:"chain-name"`
-	RPCAddress  string   `json:"rpc-address"`
-	GRPCAddress string   `json:"grpc-address"`
-	IBCPath     []string `json:"ibc-paths"`
-}
-
 func WriteRunningChains(configsDir string, bz []byte) {
 	filepath := filepath.Join(configsDir, "configs", "logs.json")
 	_ = os.WriteFile(filepath, bz, 0644)
 }
 
-func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, connections []IBCChannel) (*cosmos.CosmosChain, int) {
+func DumpChainsInfoToLogs(configDir string, config *types.Config, chains []ibc.Chain, connections []types.IBCChannel) (*cosmos.CosmosChain, int) {
 	// This may be un-needed.
 	var longestTTLChain *cosmos.CosmosChain
 	ttlWait := 0
 
-	mainLogs := MainLogs{
+	mainLogs := types.MainLogs{
 		StartTime: uint64(time.Now().Unix()),
-		Chains:    []LogOutput{},
+		Chains:    []types.LogOutput{},
 		Channels:  connections,
 	}
 
@@ -51,7 +39,7 @@ func DumpChainsInfoToLogs(configDir string, config *Config, chains []ibc.Chain, 
 		}
 
 		// TODO: save another log for relayer info instead?
-		log := LogOutput{
+		log := types.LogOutput{
 			// TODO: Rest API Address?
 			ChainID:     chainObj.Config().ChainID,
 			ChainName:   chainObj.Config().Name,

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	interchain "github.com/reecepbcups/localinterchain/interchain"
+	ictypes "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/spf13/cobra"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 
@@ -19,7 +19,7 @@ import (
 var reader = bufio.NewReader(os.Stdin)
 
 type Chains struct {
-	Chains []interchain.Chain `json:"chains"`
+	Chains []ictypes.Chain `json:"chains"`
 }
 
 var newChainCmd = &cobra.Command{
@@ -42,12 +42,12 @@ var newChainCmd = &cobra.Command{
 		// }
 
 		var config Chains
-		var chains []interchain.Chain
+		var chains []ictypes.Chain
 
 		for i := 1; i < 1000; i++ {
 			fmt.Printf("\n===== Creating new chain #%d =====\n", i)
 
-			c := interchain.Chain{
+			c := ictypes.Chain{
 				// Required
 				Name:          getOrDefault("Name", "juno").(string),
 				ChainID:       getOrDefault("Chain-ID", "local-1").(string),
@@ -58,7 +58,7 @@ var newChainCmd = &cobra.Command{
 
 				// IBCPaths should be unique chain ids?
 				IBCPaths: parseIBCPaths(getOrDefault("IBC Paths", "").(string)),
-				DockerImage: interchain.DockerImage{
+				DockerImage: ictypes.DockerImage{
 					Repository: getOrDefault("Docker Repo", "ghcr.io/cosmoscontracts/juno-e2e").(string),
 					Version:    getOrDefault("Docker Tag/Branch Version", "v15.0.0").(string),
 					UidGid:     "1000:1000",
@@ -82,7 +82,7 @@ var newChainCmd = &cobra.Command{
 				NumberVals: 1,
 				NumberNode: 0,
 				BlocksTTL:  -1,
-				Genesis: interchain.Genesis{
+				Genesis: ictypes.Genesis{
 					Accounts:        generateRandomAccounts(),
 					Modify:          []cosmos.GenesisKV{},
 					StartupCommands: []string{},
@@ -106,8 +106,8 @@ var newChainCmd = &cobra.Command{
 	},
 }
 
-func generateRandomAccounts() []interchain.GenesisAccount {
-	accounts := []interchain.GenesisAccount{}
+func generateRandomAccounts() []ictypes.GenesisAccount {
+	accounts := []ictypes.GenesisAccount{}
 
 	num, err := strconv.Atoi(strings.ReplaceAll(getOrDefault("Number of accounts to generate", 1).(string), "\n", ""))
 	if err != nil {
@@ -119,7 +119,7 @@ func generateRandomAccounts() []interchain.GenesisAccount {
 		mnemonic, _ := bip39.NewMnemonic(entropy)
 
 		// load mnemonic into cosmossdk and get the address
-		accounts = append(accounts, interchain.GenesisAccount{
+		accounts = append(accounts, ictypes.GenesisAccount{
 			Name:     fmt.Sprintf("account%d", i),
 			Amount:   "100000%DENOM%", // allow user to alter along with keyname?
 			Address:  "",              // TODO:

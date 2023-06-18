@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
+	"github.com/reecepbcups/localinterchain/interchain/router"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -67,6 +69,8 @@ func StartChain(installDir, chainCfgFile string) {
 
 	// Create a new Interchain object which describes the chains, relayers, and IBC connections we want to use
 	ic := interchaintest.NewInterchain()
+	defer ic.Close()
+
 	for _, chain := range chains {
 		ic = ic.AddChain(chain)
 	}
@@ -130,7 +134,19 @@ func StartChain(installDir, chainCfgFile string) {
 
 	// Starts a non blocking REST server to take action on the chain.
 	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint?)
-	go StartNonBlockingServer(ctx, config, vals, installDir)
+	go func() {
+		r := router.NewRouter(ctx, config, vals, installDir)
+
+		server := fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
+		if err := http.ListenAndServe(server, r); err != nil {
+			log.Default().Println(err)
+		}
+
+		// server := fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
+		// if err := http.ListenAndServe(server, nil); err != nil {
+		// 	log.Default().Println(err)
+		// }
+	}()
 
 	AddGenesisKeysToKeyring(ctx, config, chains)
 
