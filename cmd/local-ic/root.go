@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 )
@@ -22,9 +25,20 @@ var rootCmd = &cobra.Command{
 }
 
 func GetDirectory() string {
-	installDir := os.Getenv("INSTALL_DIR")
-	if installDir != "" {
-		return installDir
+	// Config variable override for the ICTEST_HOME
+	if res := os.Getenv("ICTEST_HOME"); res != "" {
+		MakeFileInstallDirectory = res
+		return res
+	}
+
+	if MakeFileInstallDirectory == "" {
+		dirname, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(dirname)
+
+		MakeFileInstallDirectory = path.Join(dirname, "local-interchain")
 	}
 
 	return MakeFileInstallDirectory
