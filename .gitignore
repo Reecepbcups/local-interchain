@@ -1,5 +1,7 @@
 bin/
 
+dist/
+
 chains/*_ignored.json
 chains/*_ignore.json
 
