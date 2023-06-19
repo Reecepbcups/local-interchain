@@ -25,7 +25,9 @@ Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installi
 - *(optional)* Edit `./configs/relayer.json`
 - Copy: `cp ./configs/chains.json ./configs/mytest1_ignored.json`
 - Run: `local-ic start mytest1_ignored.json`
-- Change directory `INSTALL_DIR=/root/example/local-interchain local-ic start myother_ignored.json`
+- Change directory `ICTEST_HOME=/root/example/local-interchain local-ic start myother_ignored.json`
+
+*(Default: `make install` links to the cloned directory. `go install .` will use your home directory /local-interchain)*
 
 *(Ending the config file with `_ignored.json` or `_ignore.json` will ignore it from git)*
 
