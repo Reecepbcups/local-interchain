@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	ictypes "github.com/reecepbcups/localinterchain/interchain/types"
-	ictypes "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/spf13/cobra"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 
