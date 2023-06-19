@@ -3,33 +3,39 @@ package types
 import (
 	"math"
 
+	"github.com/go-playground/validator"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 )
 
 type Chain struct {
 	// ibc chain config (optional)
-	ChainType            string `json:"chain-type"`
-	CoinType             int    `json:"coin-type"`
-	Binary               string `json:"binary"`
-	Bech32Prefix         string `json:"bech32-prefix"`
-	Denom                string `json:"denom"`
+	ChainType            string `json:"chain-type" validate:"min=1"`
+	CoinType             int    `json:"coin-type" validate:"gt=0"`
+	Binary               string `json:"binary" validate:"min=1"`
+	Bech32Prefix         string `json:"bech32-prefix" validate:"min=1"`
+	Denom                string `json:"denom" validate:"min=1"`
 	TrustingPeriod       string `json:"trusting-period"`
 	Debugging            bool   `json:"debugging"`
 	UseNewGenesisCommand bool   `json:"use-new-genesis-command"`
 
 	// Required
-	Name    string `json:"name"`
-	ChainID string `json:"chain-id"`
+	Name    string `json:"name" validate:"min=1"`
+	ChainID string `json:"chain-id" validate:"min=3"`
 
-	DockerImage DockerImage `json:"docker-image"`
+	DockerImage DockerImage `json:"docker-image" validate:"url"`
 
 	GasPrices     string   `json:"gas-prices"`
 	GasAdjustment float64  `json:"gas-adjustment"`
-	NumberVals    int      `json:"number-vals"`
+	NumberVals    int      `json:"number-vals" validate:"gte=1"`
 	NumberNode    int      `json:"number-node"`
 	BlocksTTL     int      `json:"blocks-ttl"`
 	IBCPaths      []string `json:"ibc-paths"`
 	Genesis       Genesis  `json:"genesis"`
+}
+
+func (chain *Chain) Validate() error {
+	validate := validator.New()
+	return validate.Struct(chain)
 }
 
 func (chain *Chain) SetChainDefaults() {
