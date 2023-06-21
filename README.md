@@ -112,15 +112,15 @@ Here is a base chain template with every feature the configuration accepts. Acco
         "modify": [
             {
                 "key": "app_state.gov.voting_params.voting_period",
-                "val": "15s"
+                "value": "15s"
             },
             {
                 "key": "app_state.gov.deposit_params.max_deposit_period",
-                "val": "15s"
+                "value": "15s"
             },
             {
                 "key": "app_state.gov.deposit_params.min_deposit.0.denom",
-                "val": "ujuno"
+                "value": "ujuno"
             }
         ],     
         "accounts": [
