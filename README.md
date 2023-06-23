@@ -107,6 +107,7 @@ Here is a base chain template with every feature the configuration accepts. Acco
     "use-new-genesis-command": false,
     "ibc-paths": ["juno-ibc-1"],
     "debugging": true,
+    "block-time": "500ms",
     "encoding-options": ["juno"],
     "genesis": {
         "modify": [
