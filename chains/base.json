@@ -19,7 +19,8 @@
             "number-vals": 1,
             "number-node": 0,
             "blocks-ttl": -1,            
-            "debugging": true,            
+            "debugging": true,
+            "block-time": "500ms",
             "encoding-options": ["juno"],
             "genesis": {
                 "modify": [

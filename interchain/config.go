@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	types "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/reecepbcups/localinterchain/interchain/util"
@@ -13,6 +14,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
 
 func loadConfig(config *types.Config, filepath string) (*types.Config, error) {
@@ -78,6 +80,21 @@ func LoadConfig(installDir, chainCfgFile string) (*types.Config, error) {
 	return config, nil
 }
 
+func FasterBlockTimesBuilder(blockTime string) testutil.Toml {
+	if _, err := time.ParseDuration(blockTime); err != nil {
+		panic(err)
+	}
+
+	tomlCfg := testutil.Toml{
+		"consensus": testutil.Toml{
+			"timeout_commit":  blockTime,
+			"timeout_propose": blockTime,
+		},
+	}
+
+	return testutil.Toml{"config/config.toml": tomlCfg}
+}
+
 func CreateChainConfigs(cfg types.Chain) (ibc.ChainConfig, *interchaintest.ChainSpec) {
 	chainCfg := ibc.ChainConfig{
 		Type:                   cfg.ChainType,
@@ -92,7 +109,7 @@ func CreateChainConfigs(cfg types.Chain) (ibc.ChainConfig, *interchaintest.Chain
 		TrustingPeriod:         cfg.TrustingPeriod,
 		NoHostMount:            false,
 		ModifyGenesis:          cosmos.ModifyGenesis(cfg.Genesis.Modify),
-		ConfigFileOverrides:    nil,
+		ConfigFileOverrides:    FasterBlockTimesBuilder(cfg.BlockTime),
 		EncodingConfig:         nil,
 		UsingNewGenesisCommand: cfg.UseNewGenesisCommand,
 	}

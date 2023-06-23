@@ -14,9 +14,10 @@ type Chain struct {
 	Binary               string `json:"binary" validate:"min=1"`
 	Bech32Prefix         string `json:"bech32-prefix" validate:"min=1"`
 	Denom                string `json:"denom" validate:"min=1"`
-	TrustingPeriod       string `json:"trusting-period"`
+	TrustingPeriod       string `json:"trusting-period" validate:"time.Duration"`
 	Debugging            bool   `json:"debugging"`
 	UseNewGenesisCommand bool   `json:"use-new-genesis-command"`
+	BlockTime            string `json:"block-time" validate:"time.Duration"`
 
 	// Required
 	Name    string `json:"name" validate:"min=1"`
@@ -61,6 +62,10 @@ func (chain *Chain) SetChainDefaults() {
 
 	if chain.TrustingPeriod == "" {
 		chain.TrustingPeriod = "112h"
+	}
+
+	if chain.BlockTime == "" {
+		chain.BlockTime = "2s"
 	}
 
 	if chain.IBCPaths == nil {
