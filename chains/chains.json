@@ -73,7 +73,7 @@
             },
             "encoding-options": ["juno"],
             "gas-prices": "0%DENOM%",
-            "gas-adjustment": 2.0,          
+            "gas-adjustment": 2.0,
             "ibc-paths": ["juno-ibc-1"]        
         },
         {

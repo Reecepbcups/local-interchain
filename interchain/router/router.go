@@ -7,11 +7,12 @@ import (
 	"github.com/gorilla/mux"
 	ictypes "github.com/reecepbcups/localinterchain/interchain/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/reecepbcups/localinterchain/interchain/handlers"
 )
 
-func NewRouter(ctx context.Context, config *ictypes.Config, vals map[string]*cosmos.ChainNode, installDir string) *mux.Router {
+func NewRouter(ctx context.Context, config *ictypes.Config, vals map[string]*cosmos.ChainNode, relayer ibc.Relayer, eRep ibc.RelayerExecReporter, installDir string) *mux.Router {
 	r := mux.NewRouter()
 
 	infoH := handlers.NewInfo(config, installDir)
@@ -20,8 +21,8 @@ func NewRouter(ctx context.Context, config *ictypes.Config, vals map[string]*cos
 	endpointsH := handlers.NewEndpoints()
 	r.HandleFunc("/", endpointsH.GetEndpoints).Methods(http.MethodGet)
 
-	// TODO: Does this work with the otehr being just GET?
-	actionsH := handlers.NewActions(ctx, vals)
+	// TODO: Does this work with the other being just GET?
+	actionsH := handlers.NewActions(ctx, vals, relayer, eRep)
 	r.HandleFunc("/", actionsH.PostActions).Methods(http.MethodPost)
 
 	uploaderH := handlers.NewUploader(ctx, vals)

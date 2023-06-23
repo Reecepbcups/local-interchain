@@ -10,17 +10,22 @@ import (
 	"github.com/reecepbcups/localinterchain/interchain/util"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
 type actions struct {
-	ctx  context.Context
-	vals map[string]*cosmos.ChainNode
+	ctx     context.Context
+	vals    map[string]*cosmos.ChainNode
+	relayer ibc.Relayer
+	eRep    ibc.RelayerExecReporter
 }
 
-func NewActions(ctx context.Context, vals map[string]*cosmos.ChainNode) *actions {
+func NewActions(ctx context.Context, vals map[string]*cosmos.ChainNode, relayer ibc.Relayer, eRep ibc.RelayerExecReporter) *actions {
 	return &actions{
-		ctx:  ctx,
-		vals: vals,
+		ctx:     ctx,
+		vals:    vals,
+		relayer: relayer,
+		eRep:    eRep,
 	}
 }
 
@@ -62,6 +67,17 @@ func (a *actions) PostActions(w http.ResponseWriter, r *http.Request) {
 		stdout, stderr, err = (a.vals[chainId]).ExecBin(a.ctx, cmd...)
 	case "e", "exec", "execute":
 		stdout, stderr, err = (a.vals[chainId]).Exec(a.ctx, cmd, []string{})
+	// TODO: move to its own relayer endpoint section?
+	case "r", "relayer":
+		if a.relayer == nil {
+			util.Write(w, []byte(`{"error":"relayer not configured for this setup"}`))
+			return
+		}
+
+		res := a.relayer.Exec(a.ctx, a.eRep, cmd, []string{})
+		stdout = []byte(res.Stdout)
+		stderr = []byte(res.Stderr)
+		err = res.Err
 	}
 
 	if len(stdout) > 0 {
