@@ -1,17 +1,16 @@
 import json
 import os
 import time
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
-from httpx import get, post
-
-from ref_types.transactions import (
+from helpers.transactions import (
     ActionHandler,
     RequestBuilder,
     TransactionResponse,
     get_transaction_response,
     send_request,
 )
+from httpx import get, post
 from util_base import (
     contracts_json_path,
     contracts_path,
@@ -23,7 +22,6 @@ from util_base import (
     parent_dir,
     update_cache,
 )
-from util_contracts import get_contract_address
 
 
 def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
@@ -55,16 +53,16 @@ def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
 
 
 class CosmWasm:
-    def __init__(self, api: str, chainId: str):
+    def __init__(self, api: str, chainId: str, contractAddrOverride: str = ""):
         self.api = api  # http://localhost:8080
         self.chainId = chainId
-        self.contractAddr = ""
+        self.contractAddr = contractAddrOverride
         self.codeId: int = -1
         # action handlers here
 
         self.rb = RequestBuilder(self.api, self.chainId)
 
-        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
+        self.default_flag_set = f"--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
 
         # the last obtained Tx hash
         self.tx_hash = ""
@@ -124,13 +122,14 @@ class CosmWasm:
         cmd = f"""tx wasm instantiate {codeId} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""
         res = self.rb.bin(cmd)
         # Get chain block time here instead
-        time.sleep(1)
+        # time.sleep(1)
 
         # just have send_request return this?
         tx_res = get_transaction_response(res)
+        print(tx_res)
 
-        contractAddr = get_contract_address(self.rb, tx_res.TxHash)
-        print(f"[instantiate_contract] {contractAddr=}\n")
+        contractAddr = CosmWasm.get_contract_address(self.rb, tx_res.TxHash)
+        print(f"[instantiate_contract] {label} {contractAddr}")
 
         self.tx_hash = tx_res.TxHash
         self.contractAddr = contractAddr
@@ -148,11 +147,15 @@ class CosmWasm:
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
-        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} {self.default_flag_set} {flags}"
+        # TODO: Use self.default_flag_set
+        # cmd = f"tx wasm execute {self.contractAddr} {msg} {self.default_flag_set} --from={accountKey} {flags}"
+        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
         print("[execute_contract]", cmd)
-        res = self.rb.query(cmd)
+        res = self.rb.bin(cmd)
+        print(res)
 
         tx_res = get_transaction_response(res)
+        print(tx_res)
 
         self.tx_hash = tx_res.TxHash
 
@@ -166,6 +169,36 @@ class CosmWasm:
         cmd = f"query wasm contract-state smart {self.contractAddr} {msg}"
         res = self.rb.query(cmd)
         return res
+
+    # TODO: Rename confusing
+    @staticmethod
+    def b64encode(MSG: dict):
+        if isinstance(MSG, str):
+            MSG = json.loads(MSG)
+
+        return b64encode(CosmWasm.remove_msg_spaces(MSG)).decode("utf-8")
+
+    @staticmethod
+    def remove_msg_spaces(MSG: dict):
+        return json.dumps(MSG, separators=(",", ":")).encode("utf-8")
+
+    @staticmethod
+    def get_contract_address(rb: RequestBuilder, tx_hash: str) -> str:
+        res_json = rb.query(f"tx {tx_hash} --output=json")
+
+        code = int(res_json["code"])
+        if code != 0:
+            raw = res_json["raw_log"]
+            return raw
+
+        contract_addr = ""
+        for event in res_json["logs"][0]["events"]:
+            for attr in event["attributes"]:
+                if attr["key"] == "_contract_address":
+                    contract_addr = attr["value"]
+                    break
+
+        return contract_addr
 
     @staticmethod
     def download_base_contracts():

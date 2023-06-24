@@ -10,25 +10,22 @@ Steps:
 - Profit
 """
 
+import base64
 import os
 
-from api_test import send_request
+from helpers.transactions import RequestBuilder
 from util_base import API_URL
-from util_contracts import b64encode, remove_spaces
-from util_req import RequestBase, RequestType
 
 KEY_NAME = "acc0"
 CHAIN_ID = "localjuno-1"
 
-bin_base = RequestBase(API_URL, CHAIN_ID, RequestType.BIN)
-query_base = RequestBase(API_URL, CHAIN_ID, RequestType.QUERY)
 
-
-from ref_types import CosmWasm
+from helpers import CosmWasm
 
 
 def main():
-    send_request(bin_base, f"config keyring-backend test")
+    rb = RequestBuilder(API_URL, CHAIN_ID)
+    rb.bin("config keyring-backend test")
 
     absolute_path = os.path.abspath(__file__)
     parent_dir = os.path.dirname(os.path.dirname(absolute_path))
@@ -64,12 +61,12 @@ def main():
             }
         },
     }
-    ENCODED_PROP_MESSAGE = b64encode(MODULE_MSG)
+    ENCODED_PROP_MESSAGE = CosmWasm.b64encode(MODULE_MSG)
 
     VOTING_MSG = '{"owner":{"core_module":{}},"denom":"ujuno"}'
-    ENCODED_VOTING_MESSAGE = b64encode(VOTING_MSG)
+    ENCODED_VOTING_MESSAGE = CosmWasm.b64encode(VOTING_MSG)
 
-    CW_CORE_INIT = remove_spaces(
+    CW_CORE_INIT = CosmWasm.remove_msg_spaces(
         {
             "admin": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
             "automatically_add_cw20s": True,

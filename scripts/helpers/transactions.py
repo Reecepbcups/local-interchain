@@ -6,10 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from httpx import get, post
-
 from util_base import contracts_path, current_dir, parent_dir
-
-# from util_contracts import get_contract_address
 
 
 def get_tx_hash(res: str | dict) -> str:
@@ -131,7 +128,9 @@ def send_request(
     r = post(base.URL, json=data, headers={"Content-Type": "application/json"})
 
     if log_output:
-        print("[send_request resp]", r.text)
+        # ex: config and such
+        if r.text != "{}":
+            print("[send_request resp]", r.text)
 
     # This is messy, clean up
     if returnText:
@@ -154,13 +153,14 @@ def get_transaction_response(send_req_res: str | dict) -> TransactionResponse:
             txr.RawLog = send_req_res
             return txr
 
-        txHash = json.loads(send_req_res)["txhash"]
-        txr.TxHash = txHash
+        txr.TxHash = json.loads(send_req_res)["txhash"]
+        print("1 txr.TxHash", txr.TxHash)
 
     if isinstance(send_req_res, dict):
         thash = send_req_res.get("txhash")
         txr.TxHash = thash if thash is not None else ""
         txr.RawLog = send_req_res.get("raw_log")
+        print("2 txr.TxHash", txr.TxHash)
 
     if txr.TxHash is None:
         raise Exception("No txHash found", send_req_res)
