@@ -30,9 +30,8 @@ def download_base_contracts():
             f.write(r.content)
 
 
-def get_file_hash(rel_file_path: str) -> str:
+def get_file_hash(rel_file_path: str, chainId: str) -> str:
     BUF_SIZE = 65536  # 64k chunks
-    md5 = hashlib.md5()
     sha1 = hashlib.sha1()
 
     file_path = os.path.join(contracts_path, rel_file_path)
@@ -41,12 +40,12 @@ def get_file_hash(rel_file_path: str) -> str:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 
+    sha1.update(chainId.replace("-", "").encode("utf-8"))
     with open(file_path, "rb") as f:
         while True:
             data = f.read(BUF_SIZE)
             if not data:
                 break
-            md5.update(data)
             sha1.update(data)
 
     return sha1.hexdigest()
@@ -80,10 +79,9 @@ def instantiate_contract(
     flags: str = "",
 ) -> str:
     # tx = f" {cw4CodeId} {init} --label=cw4 --from {KEY_NAME} --no-admin --home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json"
-    value: str
-    # res = send_request(bin_base, msg)
+    txHash: str | None
 
-    if "--output=json" not in msg:
+    if "--output=json" not in flags:
         msg += " --output=json"
 
     res = send_request(
@@ -92,14 +90,49 @@ def instantiate_contract(
     time.sleep(2.5)
 
     if isinstance(res, dict):
-        value = res["txhash"]
+        resVal = res.get("txhash")
+        txHash = resVal if resVal is not None else res.get("raw_log")
     else:
-        value = json.loads(res)["txhash"]
+        txHash = json.loads(res)["txhash"]
 
-    print(f"{value=}")
+    if txHash is None:
+        raise Exception("No txHash found", res)
 
-    addr = get_contract_address(query_base, value)
+    addr = get_contract_address(query_base, txHash)
     return addr
+
+
+def execute_contract(
+    bin_base: RequestBase,
+    contract_addr: str,
+    msg: str,
+    flags: str = "",
+) -> str:
+    txHash: str | None
+
+    if "--output=json" not in flags:
+        msg += " --output=json"
+
+    cmd = f"tx wasm execute {contract_addr} {msg} {flags}"
+    print(cmd)
+    res = send_request(bin_base, cmd)
+
+    if isinstance(res, dict):
+        resVal = res.get("txhash")
+        txHash = resVal if resVal is not None else res.get("raw_log")
+    else:
+        txHash = json.loads(res)["txhash"]
+
+    if txHash is None:
+        raise Exception("No txHash found", res)
+
+    return txHash
+
+
+def query_contract(query_base: RequestBase, contract_addr: str, msg: str) -> dict:
+    cmd = f"query wasm contract-state smart {contract_addr} {msg}"
+    res = send_request(query_base, cmd)
+    return res
 
 
 def b64encode(MSG: dict):

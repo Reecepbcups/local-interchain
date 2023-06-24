@@ -20,7 +20,7 @@
             "number-node": 0,
             "blocks-ttl": -1,
             "block-time": "500ms",
-            "ibc-paths": ["juno-ibc-1", "juno-atom-1"],
+            "ibc-paths": ["juno-ibc-1"],
             "debugging": true,            
             "encoding-options": ["juno"],
             "genesis": {
@@ -51,14 +51,6 @@
                         "amount": "10000000%DENOM%",
                         "mnemonic": "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise"
                     }
-                ],
-                "startup-commands": [
-                    "%BIN% keys add example-key-after --keyring-backend test --home %HOME%",
-                    "%BIN% keys add example-key-after1 --keyring-backend test --home %HOME%",
-                    "%BIN% keys add example-key-after2 --keyring-backend test --home %HOME%",
-                    "%BIN% keys add example-key-after3 --keyring-backend test --home %HOME%",
-                    "%BIN% keys add example-key-after4 --keyring-backend test --home %HOME%",
-                    "%BIN% keys add example-key-after5 --keyring-backend test --home %HOME%"
                 ]                
             }
         },
@@ -72,25 +64,27 @@
                 "repository": "ghcr.io/cosmoscontracts/juno-e2e",
                 "version": "v14.1.0"
             },
+            "genesis": {     
+                "accounts": [
+                    {
+                        "name": "second0",
+                        "address": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
+                        "amount": "10000000%DENOM%",
+                        "mnemonic": "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry"
+                    },
+                    {
+                        "name": "second1",
+                        "address": "juno1hj5fveer5cjtn4wd6wstzugjfdxzl0xps73ftl",
+                        "amount": "10000000%DENOM%",
+                        "mnemonic": "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise"
+                    }
+                ]                
+            },
             "block-time": "500ms",
             "encoding-options": ["juno"],
             "gas-prices": "0%DENOM%",
             "gas-adjustment": 2.0,
             "ibc-paths": ["juno-ibc-1"]        
-        },
-        {
-            "name": "gaia",
-            "chain-id": "localcosmos-1",
-            "denom": "uatom",
-            "binary": "gaiad",
-            "bech32-prefix": "cosmos",
-            "docker-image": {                
-                "version": "v9.1.0"
-            },
-            "block-time": "500ms",
-            "gas-prices": "0.01%DENOM%",
-            "gas-adjustment": 2.0,
-            "ibc-paths": ["juno-atom-1"]
         }
     ]
 }
