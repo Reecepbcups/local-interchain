@@ -86,7 +86,14 @@ func (a *relaying) PostRelayerActions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		stdout = []byte(fmt.Sprintf(`{"channels":%s}`, res))
+		r, err := json.Marshal(res)
+		if err != nil {
+			util.WriteError(w, err)
+			return
+		}
+
+		// stdout = []byte(fmt.Sprintf(`{"channels":%s}`, string(r)))
+		stdout = r
 		err = nil
 
 	case "stop", "stop-relayer", "stopRelayer", "stop_relayer":

@@ -36,15 +36,12 @@ def send_request(
         elif cmd.lower().startswith("q "):
             cmd = cmd[2:]
 
-    if "output=json" not in cmd:
-        cmd += " --output=json"
-
     data = {
         "chain-id": base.chain_id,
         "action": base.request_type.value,
         "cmd": cmd,
     }
-    print("req query data", data)
+    print("[send_request]", data)
     r = httpx.post(base.URL, json=data, headers={"Content-Type": "application/json"})
 
     if returnText:

@@ -25,18 +25,18 @@ def send_relay_request(
     if base.URL == "":
         raise Exception("send_request URL is empty")
 
-    if "output=json" not in cmd:
-        cmd += " --output=json"
-
     data = {
         "chain-id": base.chain_id,
         "action": action,
         "cmd": cmd,
     }
+    # print("[relayer data]", data)
+
+    print("[relayer]", data["cmd"])
+
     r = httpx.post(
         base.URL, json=data, headers={"Content-Type": "application/json"}, timeout=120
     )
-    print("send_relay", r.text)
 
     if returnText:
         return dict(text=r.text)

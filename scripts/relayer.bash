@@ -8,7 +8,7 @@ RELAYER_REQUEST() {
     curl http://localhost:8080/relayer --include --header "Content-Type: application/json" -X $1 --data "$2"
 }
 
-
+# MAKE_REQUEST POST '{"chain-id":"localjuno-1","action":"bin","cmd":"keys list --keyring-backend=test"}'
 
 RELAYER_REQUEST POST '{"chain-id":"localjuno-1","action":"get_channels"}'
 

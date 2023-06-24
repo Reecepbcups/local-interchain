@@ -50,7 +50,7 @@ def get_chain_start_time_from_logs() -> int:
 
 
 def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
-    print(f"Uploading [{chain_id}] {abs_path}")
+    print(f"[upload_file] ({chain_id}) {abs_path}")
 
     data = {
         "chain-id": chain_id,

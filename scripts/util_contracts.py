@@ -98,8 +98,9 @@ def instantiate_contract(
     if txHash is None:
         raise Exception("No txHash found", res)
 
-    addr = get_contract_address(query_base, txHash)
-    return addr
+    address = get_contract_address(query_base, txHash)
+    print(f"[instantiate_contract] {address=}\n")
+    return address
 
 
 def execute_contract(
@@ -114,7 +115,8 @@ def execute_contract(
         msg += " --output=json"
 
     cmd = f"tx wasm execute {contract_addr} {msg} {flags}"
-    print(cmd)
+    print("[execute_contract]", cmd)
+
     res = send_request(bin_base, cmd)
 
     if isinstance(res, dict):
