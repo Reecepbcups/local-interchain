@@ -33,11 +33,9 @@ Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installi
 
 ---
 
-## Endpoints
+## REST API
 
-- (POST) localhost:8080/
-- (POST) localhost:8080/upload
-- (GET)  localhost:8080/info
+A rest API can be found at `curl localhost:8080/` by default. Other actions can take place here such as file uploads, actions, querying chain config information, and more!
 
 ## Helpful Tips
 
