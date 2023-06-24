@@ -30,11 +30,18 @@ def send_request(
     if base.URL == "":
         raise Exception("send_request URL is empty")
 
+    if base.request_type == RequestType.QUERY:
+        if cmd.lower().startswith("query "):
+            cmd = cmd[6:]
+        elif cmd.lower().startswith("q "):
+            cmd = cmd[2:]
+
     data = {
         "chain-id": base.chain_id,
         "action": base.request_type.value,
         "cmd": cmd,
     }
+    print("[send_request]", data)
     r = httpx.post(base.URL, json=data, headers={"Content-Type": "application/json"})
 
     if returnText:

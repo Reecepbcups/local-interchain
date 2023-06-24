@@ -135,7 +135,7 @@ func StartChain(installDir, chainCfgFile string) {
 	// Starts a non blocking REST server to take action on the chain.
 	// TODO: kill this later & cleanup all docker containers. (maybe add a /kill-switch endpoint?)
 	go func() {
-		r := router.NewRouter(ctx, config, vals, installDir)
+		r := router.NewRouter(ctx, config, vals, &relayer, eRep, installDir)
 
 		server := fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
 		if err := http.ListenAndServe(server, r); err != nil {

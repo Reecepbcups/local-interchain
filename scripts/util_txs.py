@@ -50,7 +50,7 @@ def get_chain_start_time_from_logs() -> int:
 
 
 def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
-    print(f"Uploading {abs_path}")
+    print(f"[upload_file] ({chain_id}) {abs_path}")
 
     data = {
         "chain-id": chain_id,
@@ -74,7 +74,7 @@ def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
     if r.status_code != 200:
         return dict(error=r.text)
 
-    return json.loads(r.text)
+    return json.loads(r.text.replace("\n", ""))
 
 
 def get_cache_or_default(contracts: dict, ictest_chain_start: int) -> dict:
@@ -112,10 +112,10 @@ def store_contract(bin_base: RequestBase, key_name: str, abs_path: str) -> int:
 
     contracts = get_cache_or_default(contracts, ictest_chain_start)
 
-    sha1 = get_file_hash(abs_path)
+    sha1 = get_file_hash(abs_path, bin_base.chain_id)
     if sha1 in contracts["file_cache"]:
         codeId = contracts["file_cache"][sha1]
-        print(f"Using cached code id {codeId} for {abs_path}")
+        print(f"[Cache] CodeID={codeId} for {abs_path.split('/')[-1]}")
         return codeId
 
     res = _upload_file(bin_base.URL, bin_base.chain_id, key_name, abs_path)
