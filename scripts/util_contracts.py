@@ -9,46 +9,6 @@ from util_base import contracts_path, current_dir, parent_dir
 from util_req import RequestBase, send_request
 
 
-def download_base_contracts():
-    files = [
-        "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",
-        "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",
-        "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",
-    ]
-
-    # download the file to the contracts/ folder
-    for url in files:
-        name = url.split("/")[-1]
-        file_path = os.path.join(contracts_path, name)
-
-        if os.path.exists(file_path):
-            continue
-
-        print(f"Downloading {name} to {file_path}")
-        r = get(url, allow_redirects=True)
-        with open(file_path, "wb") as f:
-            f.write(r.content)
-
-
-def get_file_hash(rel_file_path: str, chainId: str) -> str:
-    BUF_SIZE = 65536  # 64k chunks
-    sha1 = hashlib.sha1()
-
-    file_path = os.path.join(contracts_path, rel_file_path)
-
-    # if file_path does not exist, throw error
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    sha1.update(chainId.replace("-", "").encode("utf-8"))
-    with open(file_path, "rb") as f:
-        while True:
-            data = f.read(BUF_SIZE)
-            if not data:
-                break
-            sha1.update(data)
-
-    return sha1.hexdigest()
 
 
 def get_contract_address(query_base: RequestBase, tx_hash: str) -> str:
