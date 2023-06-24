@@ -31,13 +31,16 @@ func NewRelayerActions(ctx context.Context, vals map[string]*cosmos.ChainNode, r
 
 type RelayerHandler struct {
 	ChainId string `json:"chain-id"`
-	Action  string `json:"action"` // types? (get_wallet)
+	Action  string `json:"action"`
 	Cmd     string `json:"cmd"`
 }
 
+// TODO: Combine with actions.go? ActionHandler & RelayerHandler are the same now.
 func (a *relaying) PostRelayerActions(w http.ResponseWriter, r *http.Request) {
+	var err error
 	var rh RelayerHandler
-	err := json.NewDecoder(r.Body).Decode(&rh)
+
+	err = json.NewDecoder(r.Body).Decode(&rh)
 	if err != nil {
 		util.WriteError(w, err)
 		return
@@ -73,8 +76,6 @@ func (a *relaying) PostRelayerActions(w http.ResponseWriter, r *http.Request) {
 		}
 
 		res := (*a.relayer).Exec(a.ctx, a.eRep, cmd, []string{})
-
-		// if they all have res, do this after
 		stdout = []byte(res.Stdout)
 		stderr = []byte(res.Stderr)
 		err = res.Err
@@ -91,10 +92,7 @@ func (a *relaying) PostRelayerActions(w http.ResponseWriter, r *http.Request) {
 			util.WriteError(w, err)
 			return
 		}
-
-		// stdout = []byte(fmt.Sprintf(`{"channels":%s}`, string(r)))
 		stdout = r
-		err = nil
 
 	case "stop", "stop-relayer", "stopRelayer", "stop_relayer":
 		err = (*a.relayer).StopRelayer(a.ctx, a.eRep)
@@ -116,6 +114,5 @@ func (a *relaying) PostRelayerActions(w http.ResponseWriter, r *http.Request) {
 		output = fmt.Sprintf(`%s`, err)
 	}
 
-	// Send the response
 	util.Write(w, []byte(output))
 }

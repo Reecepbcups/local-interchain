@@ -19,9 +19,6 @@ def send_relay_request(
     cmd: str = "",
     returnText: bool = False,
 ) -> dict:
-    # if base.chain_id == "":
-    #     raise Exception("send_request Chain ID is empty")
-
     if base.URL == "":
         raise Exception("send_request URL is empty")
 
