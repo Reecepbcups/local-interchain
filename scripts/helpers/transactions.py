@@ -154,13 +154,11 @@ def get_transaction_response(send_req_res: str | dict) -> TransactionResponse:
             return txr
 
         txr.TxHash = json.loads(send_req_res)["txhash"]
-        print("1 txr.TxHash", txr.TxHash)
 
     if isinstance(send_req_res, dict):
         thash = send_req_res.get("txhash")
         txr.TxHash = thash if thash is not None else ""
         txr.RawLog = send_req_res.get("raw_log")
-        print("2 txr.TxHash", txr.TxHash)
 
     if txr.TxHash is None:
         raise Exception("No txHash found", send_req_res)
