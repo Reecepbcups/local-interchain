@@ -24,7 +24,34 @@ from util_base import (
     update_cache,
 )
 from util_contracts import get_contract_address
-from util_txs import _upload_file
+
+
+def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
+    print(f"[upload_file] ({chain_id}) {abs_path}")
+
+    data = {
+        "chain_id": chain_id,
+        "key-name": key_name,
+        "file-name": abs_path,
+    }
+
+    url = URL
+    if url.endswith("/"):
+        url += "upload"
+    else:
+        url += "/upload"
+
+    r = post(
+        url,
+        json=data,
+        headers={"Content-Type": "application/json"},
+        timeout=120,
+    )
+
+    if r.status_code != 200:
+        return dict(error=r.text)
+
+    return json.loads(r.text.replace("\n", ""))
 
 
 class CosmWasm:
@@ -35,9 +62,7 @@ class CosmWasm:
         self.codeId: int = -1
         # action handlers here
 
-        rb = RequestBuilder(self.api, self.chainId)
-        self.query_base = rb.query()
-        self.bin_base = rb.bin()
+        self.rb = RequestBuilder(self.api, self.chainId)
 
         self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
 
@@ -59,16 +84,14 @@ class CosmWasm:
 
         contracts = get_cache_or_default(contracts, ictest_chain_start)
 
-        sha1 = get_file_hash(abs_path, self.bin_base.chain_id)
+        sha1 = get_file_hash(abs_path, self.chainId)
         if sha1 in contracts["file_cache"]:
             self.codeId = contracts["file_cache"][sha1]
             print(f"[Cache] CodeID={self.codeId} for {abs_path.split('/')[-1]}")
             return self.codeId
 
         # TODO: make upload_file public & require bin_base input.
-        res = _upload_file(
-            self.bin_base.URL, self.bin_base.chain_id, key_name, abs_path
-        )
+        res = _upload_file(self.api, self.chainId, key_name, abs_path)
         if "error" in res:
             raise Exception(res["error"])
 
@@ -99,14 +122,14 @@ class CosmWasm:
             msg = json.dumps(msg, separators=(",", ":"))
 
         cmd = f"""tx wasm instantiate {codeId} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""
-        res = send_request(self.bin_base, cmd)
+        res = self.rb.bin(cmd)
         # Get chain block time here instead
         time.sleep(1)
 
         # just have send_request return this?
         tx_res = get_transaction_response(res)
 
-        contractAddr = get_contract_address(self.query_base, tx_res.TxHash)
+        contractAddr = get_contract_address(self.rb, tx_res.TxHash)
         print(f"[instantiate_contract] {contractAddr=}\n")
 
         self.tx_hash = tx_res.TxHash
@@ -127,10 +150,8 @@ class CosmWasm:
 
         cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} {self.default_flag_set} {flags}"
         print("[execute_contract]", cmd)
+        res = self.rb.query(cmd)
 
-        res = send_request(self.bin_base, cmd)
-
-        # just have send_request return this?
         tx_res = get_transaction_response(res)
 
         self.tx_hash = tx_res.TxHash
@@ -143,7 +164,7 @@ class CosmWasm:
             msg = json.dumps(msg, separators=(",", ":"))
 
         cmd = f"query wasm contract-state smart {self.contractAddr} {msg}"
-        res = send_request(self.query_base, cmd)
+        res = self.rb.query(cmd)
         return res
 
     @staticmethod

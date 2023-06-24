@@ -1,49 +1,52 @@
 import json
 from dataclasses import dataclass
 
+# from util_req import RequestBase, send_request
+# from util_req import RequestBase, RequestType
+from enum import Enum
+
 from httpx import get, post
 
 from util_base import contracts_path, current_dir, parent_dir
-from util_contracts import get_contract_address
 
-# from util_req import RequestBase, send_request
-from util_req import RequestBase, RequestType
-
-# make a request builder
+# from util_contracts import get_contract_address
 
 
-class RequestBuilder:
-    def __init__(self, apiEndpoint: str, chainID: str):
-        self.apiEndpoint = apiEndpoint
-        self.chainID = chainID
+def get_tx_hash(res: str | dict) -> str:
+    # String is a JSON blob, but was input as a string
+    if isinstance(res, str):
+        try:
+            res = json.loads(res)
+        except:
+            pass
 
-        if self.apiEndpoint == "":
-            raise Exception("RequestBuilder apiEndpoint is empty")
+    tx_hash = ""
+    if isinstance(res, dict):
+        tx_hash = res["txhash"]
+    else:
+        tx_hash = res
 
-        if self.chainID == "":
-            raise Exception("RequestBuilder chainID is empty")
+    return tx_hash
 
-    # TODO: Add specific for each?
-    def bin(self, cmd: str) -> dict:
-        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.BIN)
-        return send_request(rb, cmd)
 
-    def query(self, cmd: str) -> dict:
-        """
-            # on actual query, do this check (currently in send_request)
-            if base.request_type == RequestType.QUERY:
-        if cmd.lower().startswith("query "):
-            cmd = cmd[6:]
-        elif cmd.lower().startswith("q "):
-            cmd = cmd[2:]
-        """
-        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.QUERY)
-        return send_request(rb, cmd)
+class RequestType(Enum):
+    BIN = "bin"
+    QUERY = "query"
+    EXEC = "exec"
 
-    # TODO: i do not use anywhere atm, remove?
-    def exec(self, cmd: str) -> dict:
-        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.EXEC)
-        return send_request(rb, cmd)
+
+@dataclass(frozen=True)
+class RequestBase:
+    URL: str
+    chain_id: str
+    request_type: RequestType
+
+
+# TODO: type handler this better with a dataclass
+@dataclass
+class TransactionResponse:
+    TxHash: str = ""
+    RawLog: str | None = ""
 
 
 @dataclass
@@ -58,7 +61,6 @@ class ActionHandler:
         self.cmd = cmd
 
     def to_json(self) -> dict:
-        # json.dumps(self.__dict__, separators=(",", ":"))
         return {
             "chain_id": self.chain_id,
             "action": self.action,
@@ -66,11 +68,55 @@ class ActionHandler:
         }
 
 
+class RequestBuilder:
+    def __init__(self, apiEndpoint: str, chainID: str):
+        self.apiEndpoint = apiEndpoint
+        self.chainID = chainID
+
+        if self.apiEndpoint == "":
+            raise Exception("RequestBuilder apiEndpoint is empty")
+
+        if self.chainID == "":
+            raise Exception("RequestBuilder chainID is empty")
+
+    # TODO: Add specific for each?
+    def bin(self, cmd: str, log_output: bool = False) -> dict:
+        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.BIN)
+        return send_request(rb, cmd, log_output=log_output)
+
+    def query(self, cmd: str, log_output: bool = False) -> dict:
+        """
+            # on actual query, do this check (currently in send_request)
+            if base.request_type == RequestType.QUERY:
+        if cmd.lower().startswith("query "):
+            cmd = cmd[6:]
+        elif cmd.lower().startswith("q "):
+            cmd = cmd[2:]
+        """
+        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.QUERY)
+        return send_request(rb, cmd, log_output=log_output)
+
+    # What / when is response?
+    def query_tx(self, response: str | dict) -> dict:
+        tx_hash = get_tx_hash(response)
+        if len(tx_hash) == 0:
+            return dict(error="tx_hash is empty")
+
+        res = self.query(f"tx {tx_hash} --output json")
+        return dict(tx=res)
+
+    # TODO: i do not use anywhere atm, remove?
+    def exec(self, cmd: str, log_output: bool = False) -> dict:
+        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.EXEC)
+        return send_request(rb, cmd, log_output=log_output)
+
+
 # util_req.py
 def send_request(
     base: RequestBase = RequestBase("", "", RequestType.BIN),
     cmd: str = "",
     returnText: bool = False,
+    log_output: bool = False,
 ) -> dict:
     if base.request_type == RequestType.QUERY:
         if cmd.lower().startswith("query "):
@@ -79,9 +125,13 @@ def send_request(
             cmd = cmd[2:]
 
     data = ActionHandler(base.chain_id, base.request_type.value, cmd).to_json()
-    print("[send_request]", data)
+    if log_output:
+        print("[send_request data]", data)
+
     r = post(base.URL, json=data, headers={"Content-Type": "application/json"})
-    print(r.text)
+
+    if log_output:
+        print("[send_request resp]", r.text)
 
     # This is messy, clean up
     if returnText:
@@ -92,13 +142,6 @@ def send_request(
         return json.loads(r.text)
     except:
         return {"parse_error": r.text}
-
-
-# TODO: type handler this better with a dataclass
-@dataclass
-class TransactionResponse:
-    TxHash: str = ""
-    RawLog: str | None = ""
 
 
 def get_transaction_response(send_req_res: str | dict) -> TransactionResponse:
