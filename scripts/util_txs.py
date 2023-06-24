@@ -3,8 +3,10 @@ import os
 import time
 
 import httpx
+
 from util_base import contracts_json_path, default_contracts_json, parent_dir
-from util_contracts import get_file_hash
+
+# from util_contracts import get_file_hash
 from util_req import RequestBase, send_request
 
 BLOCK_TIME = 2
@@ -53,7 +55,7 @@ def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
     print(f"[upload_file] ({chain_id}) {abs_path}")
 
     data = {
-        "chain-id": chain_id,
+        "chain_id": chain_id,
         "key-name": key_name,
         "file-name": abs_path,
     }
@@ -91,36 +93,3 @@ def get_cache_or_default(contracts: dict, ictest_chain_start: int) -> dict:
             json.dump(contracts, f, indent=4)
 
     return contracts
-
-
-def update_cache(contracts: dict, code_id: str | int, sha_hash: str) -> int:
-    contracts["file_cache"][sha_hash] = int(code_id)
-    with open(contracts_json_path, "w") as f:
-        json.dump(contracts, f, indent=4)
-    return int(code_id)
-
-
-def store_contract(bin_base: RequestBase, key_name: str, abs_path: str) -> int:
-    ictest_chain_start = get_chain_start_time_from_logs()
-    if ictest_chain_start == -1:
-        return -1
-
-    default_contracts_json()
-
-    with open(contracts_json_path, "r") as f:
-        contracts = json.load(f)
-
-    contracts = get_cache_or_default(contracts, ictest_chain_start)
-
-    sha1 = get_file_hash(abs_path, bin_base.chain_id)
-    if sha1 in contracts["file_cache"]:
-        codeId = contracts["file_cache"][sha1]
-        print(f"[Cache] CodeID={codeId} for {abs_path.split('/')[-1]}")
-        return codeId
-
-    res = _upload_file(bin_base.URL, bin_base.chain_id, key_name, abs_path)
-    if "error" in res:
-        raise Exception(res["error"])
-
-    codeID = update_cache(contracts, res["code_id"], sha1)
-    return codeID

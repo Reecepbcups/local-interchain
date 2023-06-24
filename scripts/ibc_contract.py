@@ -63,7 +63,7 @@ def setup_env(bases: list[RequestBase] = []):
 
 
 def main():
-    FLAGS = "--home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
+    FLAGS = "--home %HOME% --node %RPC% --chain_id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
 
     absolute_path = os.path.abspath(__file__)
     parent_dir = os.path.dirname(os.path.dirname(absolute_path))

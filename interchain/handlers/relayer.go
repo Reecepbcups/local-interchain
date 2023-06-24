@@ -30,7 +30,7 @@ func NewRelayerActions(ctx context.Context, vals map[string]*cosmos.ChainNode, r
 }
 
 type RelayerHandler struct {
-	ChainId string `json:"chain-id"`
+	ChainId string `json:"chain_id"`
 	Action  string `json:"action"`
 	Cmd     string `json:"cmd"`
 }
@@ -49,7 +49,7 @@ func (a *relaying) PostRelayerActions(w http.ResponseWriter, r *http.Request) {
 	chainId := rh.ChainId
 	action := rh.Action
 	if _, ok := a.vals[chainId]; !ok {
-		util.Write(w, []byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
+		util.Write(w, []byte(fmt.Sprintf(`{"error":"chain_id %s not found"}`, chainId)))
 		return
 	}
 

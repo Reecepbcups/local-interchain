@@ -52,7 +52,7 @@ var newChainCmd = &cobra.Command{
 			c := ictypes.Chain{
 				// Required
 				Name:          getOrDefault("Name", "juno"),
-				ChainID:       getOrDefault("Chain-ID", "local-1"),
+				ChainID:       getOrDefault("chain_id", "local-1"),
 				Binary:        getOrDefault("App Binary", "junod"),
 				Bech32Prefix:  getOrDefault("Bech32 Prefix", "juno"),
 				GasPrices:     getOrDefault("Gas-Prices (comma seperated)", "0ujuno,0other"),

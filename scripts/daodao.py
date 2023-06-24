@@ -11,47 +11,44 @@ Steps:
 """
 
 import os
-from base64 import b64decode
 
-import httpx
 from api_test import send_request
-from util_base import URL, contracts_path
-from util_contracts import b64encode, instantiate_contract, remove_spaces
+from util_base import API_URL
+from util_contracts import b64encode, remove_spaces
 from util_req import RequestBase, RequestType
-from util_txs import store_contract
 
 KEY_NAME = "acc0"
 CHAIN_ID = "localjuno-1"
 
-bin_base = RequestBase(URL, CHAIN_ID, RequestType.BIN)
-query_base = RequestBase(URL, CHAIN_ID, RequestType.QUERY)
+bin_base = RequestBase(API_URL, CHAIN_ID, RequestType.BIN)
+query_base = RequestBase(API_URL, CHAIN_ID, RequestType.QUERY)
+
+
+from ref_types import CosmWasm
 
 
 def main():
     send_request(bin_base, f"config keyring-backend test")
-    FLAGS = "--home %HOME% --node %RPC% --chain-id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
 
     absolute_path = os.path.abspath(__file__)
     parent_dir = os.path.dirname(os.path.dirname(absolute_path))
     contracts_dir = os.path.join(parent_dir, "contracts")
 
-    dao_proposal_single_code_id = store_contract(
-        bin_base,
-        KEY_NAME,
-        os.path.join(contracts_dir, "dao_proposal_single.wasm"),
+    CosmWasm.download_mainnet_daodao_contracts()
+
+    # == Create contract object & upload ==
+    dao_proposal_single = CosmWasm(API_URL, CHAIN_ID)
+    dao_proposal_single.store_contract(
+        KEY_NAME, os.path.join(contracts_dir, "dao_proposal_single.wasm")
     )
 
-    dao_voting_native_staked_code_id = store_contract(
-        bin_base,
-        KEY_NAME,
-        os.path.join(contracts_dir, "dao_voting_native_staked.wasm"),
+    dao_voting_native_staked = CosmWasm(API_URL, CHAIN_ID)
+    dao_voting_native_staked.store_contract(
+        KEY_NAME, os.path.join(contracts_dir, "dao_voting_native_staked.wasm")
     )
 
-    dao_core_code_id = store_contract(
-        bin_base,
-        KEY_NAME,
-        os.path.join(contracts_dir, "dao_core.wasm"),
-    )
+    dao_core = CosmWasm(API_URL, CHAIN_ID)
+    dao_core.store_contract(KEY_NAME, os.path.join(contracts_dir, "dao_core.wasm"))
 
     # https://github.com/DA0-DA0/dao-contracts/blob/main/scripts/create-v2-dao-native-voting.sh
     MODULE_MSG = {
@@ -68,11 +65,9 @@ def main():
         },
     }
     ENCODED_PROP_MESSAGE = b64encode(MODULE_MSG)
-    # print(ENCODED_PROP_MESSAGE)
 
     VOTING_MSG = '{"owner":{"core_module":{}},"denom":"ujuno"}'
     ENCODED_VOTING_MESSAGE = b64encode(VOTING_MSG)
-    # print(ENCODED_VOTING_MESSAGE)
 
     CW_CORE_INIT = remove_spaces(
         {
@@ -84,84 +79,28 @@ def main():
             "proposal_modules_instantiate_info": [
                 {
                     "admin": {"core_module": {}},
-                    "code_id": dao_proposal_single_code_id,
+                    "code_id": dao_proposal_single.codeId,
                     "label": "v2_dao",
                     "msg": f"{ENCODED_PROP_MESSAGE}",
                 }
             ],
             "voting_module_instantiate_info": {
                 "admin": {"core_module": {}},
-                "code_id": dao_voting_native_staked_code_id,
+                "code_id": dao_voting_native_staked.codeId,
                 "label": "test_v2_dao-cw-native-voting",
                 "msg": f"{ENCODED_VOTING_MESSAGE}",
             },
         }
     ).decode("utf-8")
 
-    # print(CW_CORE_INIT)
-
-    addr = instantiate_contract(
-        query_base=query_base,
-        bin_base=bin_base,
-        codeId=dao_core_code_id,
+    dao_core.instantiate_contract(
+        account_key=KEY_NAME,
+        codeId=dao_core.codeId,
         msg=CW_CORE_INIT,
         label="dao_core",
-        flags=f"--from {KEY_NAME} --no-admin {FLAGS}",
     )
-    print(addr)
-
-
-def download_contracts():
-    # From https://github.com/DA0-DA0/dao-contracts/releases
-    # v2.1.0
-    files = """cw20_base.wasm 2443
-    cw20_stake.wasm 2444
-    cw20_stake_external_rewards.wasm 2445
-    cw20_stake_reward_distributor.wasm 2446
-    cw4_group.wasm 2447
-    cw721_base.wasm 2448
-    cw_admin_factory.wasm 2449
-    cw_fund_distributor.wasm 2450
-    cw_payroll_factory.wasm 2451
-    cw_token_swap.wasm 2452
-    cw_vesting.wasm 2453
-    dao_core.wasm 2454
-    dao_migrator.wasm 2455
-    dao_pre_propose_approval_single.wasm 2456
-    dao_pre_propose_approver.wasm 2457
-    dao_pre_propose_multiple.wasm 2458
-    dao_pre_propose_single.wasm 2459
-    dao_proposal_condorcet.wasm 2460
-    dao_proposal_multiple.wasm 2461
-    dao_proposal_single.wasm 2462
-    dao_voting_cw20_staked.wasm 2463
-    dao_voting_cw4.wasm 2464
-    dao_voting_cw721_staked.wasm 2465
-    dao_voting_native_staked.wasm 2466"""
-
-    for file in files.split("\n"):
-        file = file.strip()
-        name, codeId = file.split(" ")
-
-        file_path = os.path.join(contracts_path, name)
-        if os.path.exists(file_path):
-            continue
-
-        print(f"Downloading {name}")
-        response = httpx.get(
-            f"https://api.juno.strange.love/cosmwasm/wasm/v1/code/{codeId}",
-            headers={
-                "accept": "application/json",
-            },
-            timeout=60,
-        )
-        data = response.json()
-
-        binary = b64decode(data["data"])
-        with open(file_path, "wb") as f:
-            f.write(binary)
+    print(f"{dao_core.contractAddr=}")
 
 
 if __name__ == "__main__":
-    download_contracts()
     main()

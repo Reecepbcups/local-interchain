@@ -37,7 +37,7 @@ def send_request(
             cmd = cmd[2:]
 
     data = {
-        "chain-id": base.chain_id,
+        "chain_id": base.chain_id,
         "action": base.request_type.value,
         "cmd": cmd,
     }

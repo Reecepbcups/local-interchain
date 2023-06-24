@@ -21,7 +21,7 @@ type Chain struct {
 
 	// Required
 	Name    string `json:"name" validate:"min=1"`
-	ChainID string `json:"chain-id" validate:"min=3"`
+	ChainID string `json:"chain_id" validate:"min=3"`
 
 	DockerImage DockerImage `json:"docker-image" validate:"url"`
 

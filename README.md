@@ -48,7 +48,7 @@ A rest API can be found at `curl localhost:8080/` by default. Other actions can 
 // ./configs/logs.json
 [
   {
-    "chain-id": "exampleid-1",
+    "chain_id": "exampleid-1",
     "chain-name": "example",
     "rpc-address": "http://localhost:38829",
     "grpc-address": "localhost:34917",
@@ -66,7 +66,7 @@ A rest API can be found at `curl localhost:8080/` by default. Other actions can 
 ```json
 {
     "name": "juno",            
-    "chain-id": "localjuno-2",
+    "chain_id": "localjuno-2",
     "denom": "ujuno",
     "docker-image": {        
         "version": "v14.1.0"
@@ -85,7 +85,7 @@ Here is a base chain template with every feature the configuration accepts. Acco
 ```json
 {
     "name": "juno",            
-    "chain-id": "localjuno-1",
+    "chain_id": "localjuno-1",
     "denom": "ujuno",
     "binary": "junod",
     "bech32-prefix": "juno",

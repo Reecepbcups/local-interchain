@@ -23,7 +23,7 @@ def send_relay_request(
         raise Exception("send_request URL is empty")
 
     data = {
-        "chain-id": base.chain_id,
+        "chain_id": base.chain_id,
         "action": action,
         "cmd": cmd,
     }

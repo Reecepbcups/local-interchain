@@ -17,7 +17,7 @@ type upload struct {
 }
 
 type Uploader struct {
-	ChainId  string `json:"chain-id"`
+	ChainId  string `json:"chain_id"`
 	KeyName  string `json:"key-name"`
 	FileName string `json:"file-name"`
 }
@@ -41,7 +41,7 @@ func (u *upload) PostUpload(w http.ResponseWriter, r *http.Request) {
 
 	chainId := upload.ChainId
 	if _, ok := u.vals[chainId]; !ok {
-		util.Write(w, []byte(fmt.Sprintf(`{"error":"chain-id %s not found"}`, chainId)))
+		util.Write(w, []byte(fmt.Sprintf(`{"error":"chain_id %s not found"}`, chainId)))
 		return
 	}
 
