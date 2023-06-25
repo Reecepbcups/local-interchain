@@ -61,10 +61,10 @@ def main():
             }
         },
     }
-    ENCODED_PROP_MESSAGE = CosmWasm.b64encode(MODULE_MSG)
+    ENCODED_PROP_MESSAGE = CosmWasm.base64_encode_msg(MODULE_MSG)
 
     VOTING_MSG = '{"owner":{"core_module":{}},"denom":"ujuno"}'
-    ENCODED_VOTING_MESSAGE = CosmWasm.b64encode(VOTING_MSG)
+    ENCODED_VOTING_MESSAGE = CosmWasm.base64_encode_msg(VOTING_MSG)
 
     CW_CORE_INIT = CosmWasm.remove_msg_spaces(
         {

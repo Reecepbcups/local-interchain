@@ -3,6 +3,7 @@ import os
 import time
 from base64 import b64decode, b64encode
 
+from helpers.file_cache import Cache
 from helpers.transactions import (
     ActionHandler,
     RequestBuilder,
@@ -11,29 +12,23 @@ from helpers.transactions import (
     send_request,
 )
 from httpx import get, post
-from util_base import (
-    contracts_json_path,
-    contracts_path,
-    current_dir,
-    default_contracts_json,
-    get_cache_or_default,
-    get_chain_start_time_from_logs,
-    get_file_hash,
-    parent_dir,
-    update_cache,
-)
+
+# from util_base import contracts_json_path, contracts_path
+
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+contracts_storage_dir = os.path.join(root_dir, "contracts")
 
 
-def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
-    print(f"[upload_file] ({chain_id}) {abs_path}")
+def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
+    print(f"[upload_file] ({rb.chainID}) {abs_path}")
 
     data = {
-        "chain_id": chain_id,
+        "chain_id": rb.chainID,
         "key-name": key_name,
         "file-name": abs_path,
     }
 
-    url = URL
+    url = rb.apiEndpoint
     if url.endswith("/"):
         url += "upload"
     else:
@@ -53,12 +48,12 @@ def _upload_file(URL: str, chain_id: str, key_name: str, abs_path: str) -> dict:
 
 
 class CosmWasm:
-    def __init__(self, api: str, chainId: str, contractAddrOverride: str = ""):
+    def __init__(self, api: str, chainId: str, addr_override: str = ""):
         self.api = api  # http://localhost:8080
         self.chainId = chainId
-        self.contractAddr = contractAddrOverride
+
         self.codeId: int = -1
-        # action handlers here
+        self.contractAddr = addr_override
 
         self.rb = RequestBuilder(self.api, self.chainId)
 
@@ -71,29 +66,25 @@ class CosmWasm:
         return self.tx_hash
 
     def store_contract(self, key_name: str, abs_path: str) -> int:
-        ictest_chain_start = get_chain_start_time_from_logs()
+        ictest_chain_start = Cache.get_chain_start_time_from_logs()
         if ictest_chain_start == -1:
             return -1
 
-        default_contracts_json()
+        Cache.default_contracts_json()
 
-        with open(contracts_json_path, "r") as f:
-            contracts = json.load(f)
+        contracts = Cache.get_cache_or_default({}, ictest_chain_start)
 
-        contracts = get_cache_or_default(contracts, ictest_chain_start)
-
-        sha1 = get_file_hash(abs_path, self.chainId)
+        sha1 = Cache.get_file_hash(abs_path, self.chainId)
         if sha1 in contracts["file_cache"]:
             self.codeId = contracts["file_cache"][sha1]
             print(f"[Cache] CodeID={self.codeId} for {abs_path.split('/')[-1]}")
             return self.codeId
 
-        # TODO: make upload_file public & require bin_base input.
-        res = _upload_file(self.api, self.chainId, key_name, abs_path)
+        res = upload_file(self.rb, key_name, abs_path)
         if "error" in res:
             raise Exception(res["error"])
 
-        self.codeId = update_cache(contracts, res["code_id"], sha1)
+        self.codeId = Cache.update_cache(contracts, res["code_id"], sha1)
         return self.codeId
 
     def instantiate_contract(
@@ -106,25 +97,18 @@ class CosmWasm:
         flags: str = "",
     ) -> "CosmWasm":
         # not sure if we want this logic or not...
-        # if len(self.contractAddr) > 0:
-        #     raise Exception("Contract address already set")
-
-        # if "--output=json" not in flags:
-        #     msg += " --output=json"
+        if len(self.contractAddr) > 0:
+            raise Exception("Contract address already set")
 
         if admin is None and "--no-admin" not in flags:
             flags += "--no-admin"
 
-        # TODO: properly handle the quotes
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
         cmd = f"""tx wasm instantiate {codeId} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""
         res = self.rb.bin(cmd)
-        # Get chain block time here instead
-        # time.sleep(1)
 
-        # just have send_request return this?
         tx_res = get_transaction_response(res)
         print(tx_res)
 
@@ -147,8 +131,7 @@ class CosmWasm:
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
-        # TODO: Use self.default_flag_set
-        # cmd = f"tx wasm execute {self.contractAddr} {msg} {self.default_flag_set} --from={accountKey} {flags}"
+        # TODO: self.default_flag_set fails here for some reason...
         cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
         print("[execute_contract]", cmd)
         res = self.rb.bin(cmd)
@@ -162,7 +145,6 @@ class CosmWasm:
         return self
 
     def query_contract(self, msg: str | dict) -> dict:
-        # TODO: properly handle the quotes
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
@@ -170,11 +152,10 @@ class CosmWasm:
         res = self.rb.query(cmd)
         return res
 
-    # TODO: Rename confusing
     @staticmethod
-    def b64encode(MSG: dict):
+    def base64_encode_msg(MSG: str | dict):
         if isinstance(MSG, str):
-            MSG = json.loads(MSG)
+            MSG = dict(json.loads(MSG))
 
         return b64encode(CosmWasm.remove_msg_spaces(MSG)).decode("utf-8")
 
@@ -210,7 +191,7 @@ class CosmWasm:
 
         for url in files:
             name = url.split("/")[-1]
-            file_path = os.path.join(contracts_path, name)
+            file_path = os.path.join(contracts_storage_dir, name)
 
             if os.path.exists(file_path):
                 continue
@@ -253,7 +234,7 @@ class CosmWasm:
             file = file.strip()
             name, codeId = file.split(" ")
 
-            file_path = os.path.join(contracts_path, name)
+            file_path = os.path.join(contracts_storage_dir, name)
             if os.path.exists(file_path):
                 continue
 
@@ -277,7 +258,9 @@ if __name__ == "__main__":
 
     cw = CosmWasm(api="http://localhost:8080", chainId="localjuno-1")
 
-    codeId = cw.store_contract("acc0", os.path.join(contracts_path, "cw721_base.wasm"))
+    codeId = cw.store_contract(
+        "acc0", os.path.join(contracts_storage_dir, "cw721_base.wasm")
+    )
 
     cw.instantiate_contract(
         "acc0",

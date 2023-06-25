@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 from httpx import get, post
-from util_base import contracts_path, current_dir, parent_dir
+
+# from util_base import contracts_path, current_dir, parent_dir
 
 
 def get_tx_hash(res: str | dict) -> str:
@@ -66,9 +67,10 @@ class ActionHandler:
 
 
 class RequestBuilder:
-    def __init__(self, apiEndpoint: str, chainID: str):
+    def __init__(self, apiEndpoint: str, chainID: str, log_output: bool = False):
         self.apiEndpoint = apiEndpoint
         self.chainID = chainID
+        self.log = log_output
 
         if self.apiEndpoint == "":
             raise Exception("RequestBuilder apiEndpoint is empty")
@@ -79,7 +81,9 @@ class RequestBuilder:
     # TODO: Add specific for each?
     def bin(self, cmd: str, log_output: bool = False) -> dict:
         rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.BIN)
-        return send_request(rb, cmd, log_output=log_output)
+        return send_request(
+            rb, cmd, log_output=(log_output if log_output else self.log)
+        )
 
     def query(self, cmd: str, log_output: bool = False) -> dict:
         """
@@ -91,21 +95,30 @@ class RequestBuilder:
             cmd = cmd[2:]
         """
         rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.QUERY)
-        return send_request(rb, cmd, log_output=log_output)
+        return send_request(
+            rb, cmd, log_output=(log_output if log_output else self.log)
+        )
 
     # What / when is response?
-    def query_tx(self, response: str | dict) -> dict:
+    def query_tx(self, response: str | dict, log_output: bool = False) -> dict:
         tx_hash = get_tx_hash(response)
         if len(tx_hash) == 0:
             return dict(error="tx_hash is empty")
 
-        res = self.query(f"tx {tx_hash} --output json")
+        res = self.query(
+            f"tx {tx_hash} --output json",
+            log_output=(log_output if log_output else self.log),
+        )
         return dict(tx=res)
 
     # TODO: i do not use anywhere atm, remove?
     def exec(self, cmd: str, log_output: bool = False) -> dict:
         rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.EXEC)
-        return send_request(rb, cmd, log_output=log_output)
+        return send_request(
+            rb,
+            cmd,
+            log_output=(log_output if log_output else self.log),
+        )
 
 
 # util_req.py

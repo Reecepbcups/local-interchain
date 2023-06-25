@@ -20,8 +20,7 @@ CHAIN_ID = "localjuno-1"
 
 from helpers.transactions import RequestBuilder
 
-# TODO: option to toggle printing in send_request for all? (off by default)
-rb = RequestBuilder(API_URL, CHAIN_ID)
+rb = RequestBuilder(API_URL, CHAIN_ID, log_output=True)
 
 
 def main():
@@ -31,7 +30,6 @@ def main():
 
 # Test to ensure the base layer works and returns data properly
 def bin_test():
-    # TODO: These do not log output. Need to fix with RequestBuilder parent
     rb.bin("keys list --keyring-backend=test --output=json")
     rb.bin(
         "tx decode ClMKUQobL2Nvc21vcy5nb3YudjFiZXRhMS5Nc2dWb3RlEjIIpwISK2p1bm8xZGM3a2MyZzVrZ2wycmdmZHllZGZ6MDl1YTlwZWo1eDNsODc3ZzcYARJmClAKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiECxjGMmYp4MlxxfFWi9x4u+jOleJVde3Cru+HnxAVUJmgSBAoCCH8YNBISCgwKBXVqdW5vEgMyMDQQofwEGkDPE4dCQ4zUh6LIB9wqNXDBx+nMKtg0tEGiIYEH8xlw4H8dDQQStgAe6xFO7I/oYVSWwa2d9qUjs9qyB8r+V0Gy"
