@@ -63,18 +63,18 @@ class ActionHandler:
 
 class RequestBuilder:
     def __init__(self, api: str, chain_id: str, log_output: bool = False):
-        self.apiEndpoint = api
+        self.api = api
         self.chain_id = chain_id
         self.log = log_output
 
-        if self.apiEndpoint == "":
-            raise Exception("RequestBuilder apiEndpoint is empty")
+        if self.api == "":
+            raise Exception("RequestBuilder api is empty")
 
         if self.chain_id == "":
             raise Exception("RequestBuilder chain_id is empty")
 
     def binary(self, cmd: str, log_output: bool = False) -> dict:
-        rb = RequestBase(self.apiEndpoint, self.chain_id, RequestType.BIN)
+        rb = RequestBase(self.api, self.chain_id, RequestType.BIN)
         return send_request(
             rb, cmd, log_output=(log_output if log_output else self.log)
         )
@@ -88,7 +88,7 @@ class RequestBuilder:
         elif cmd.lower().startswith("q "):
             cmd = cmd[2:]
         """
-        rb = RequestBase(self.apiEndpoint, self.chain_id, RequestType.QUERY)
+        rb = RequestBase(self.api, self.chain_id, RequestType.QUERY)
         return send_request(
             rb, cmd, log_output=(log_output if log_output else self.log)
         )

@@ -37,8 +37,8 @@ CHAIN_ID2 = "localjuno-2"
 
 def setup_env(rbs: Collection[RequestBuilder]):
     for rb in rbs:
-        rb.binary("config keyring-backend test", log_output=True)
-        rb.binary("config output json", log_output=True)
+        rb.binary("config keyring-backend test")
+        rb.binary("config output json")
 
 
 def main():
@@ -52,8 +52,8 @@ def main():
         print("⚙️ Setting env configuration")
         setup_env(
             [
-                RequestBuilder(apiEndpoint=API_URL, chain_id=chain_id),
-                RequestBuilder(apiEndpoint=API_URL, chain_id=CHAIN_ID2),
+                RequestBuilder(api=API_URL, chain_id=chain_id, log_output=True),
+                RequestBuilder(api=API_URL, chain_id=CHAIN_ID2, log_output=True),
             ]
         )
 
@@ -95,7 +95,7 @@ def main():
         )
     else:
         # If we already uploaded the contracts and instantiated them
-        # # we can just skip the above steps.
+        # we can just skip the above steps.
         contract_1 = CosmWasm(
             API_URL,
             chain_id,
@@ -112,7 +112,7 @@ def main():
     # 'Increment {}' execute on chain b, check chainA after.
     print("\n⚔️ Execute increment")
     contract_2.execute_contract(
-        accountKey=KEY_NAME2, msg={"increment": {"channel": "channel-1"}}
+        account_key=KEY_NAME2, msg={"increment": {"channel": "channel-1"}}
     )
 
     print("\n📨 Flush Packets...")

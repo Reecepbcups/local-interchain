@@ -27,7 +27,6 @@ def bin_test():
     )
 
     rb.binary("config keyring-backend test")
-    rb.binary("config node %RPC%")
     rb.binary("config")
 
     rb.binary("keys list --output=json")
@@ -39,7 +38,7 @@ def bin_test():
 # Test to ensure Transactions and getting that data returns properly
 def tx_test():
     res = rb.binary(
-        "tx bank send acc0 juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 500ujuno --fees 5000ujuno --node %RPC% --chain-id %chain_id% --yes --output json --keyring-backend=test"
+        "tx bank send acc0 juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 500ujuno --fees 5000ujuno --node %RPC% --chain-id=%CHAIN_ID% --yes --output json --keyring-backend=test"
     )
     tx_data = rb.query_tx(res)
     print(tx_data)
