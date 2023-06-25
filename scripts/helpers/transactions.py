@@ -80,14 +80,11 @@ class RequestBuilder:
         )
 
     def query(self, cmd: str, log_output: bool = False) -> dict:
-        """
-            # on actual query, do this check (currently in send_request)
-            if base.request_type == RequestType.QUERY:
         if cmd.lower().startswith("query "):
             cmd = cmd[6:]
         elif cmd.lower().startswith("q "):
             cmd = cmd[2:]
-        """
+
         rb = RequestBase(self.api, self.chain_id, RequestType.QUERY)
         return send_request(
             rb, cmd, log_output=(log_output if log_output else self.log)

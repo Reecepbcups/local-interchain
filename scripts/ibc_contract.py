@@ -9,7 +9,7 @@ Steps:
 - Compile https://github.com/0xekez/cw-ibc-example
 - Copy to ./contracts/cw_ibc_example.wasm
 
-- local-ic start two
+- local-ic start ibc_juno
 
 - Init both contracts
 - Create a channel/connection between both (counter-1 version)
