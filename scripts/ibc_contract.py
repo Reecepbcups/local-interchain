@@ -1,7 +1,7 @@
 #
 # SHows how to relay between contracts
 
-"""
+""".
 
 pip install httpx
 
@@ -19,6 +19,7 @@ Steps:
 """
 
 import os
+from typing import Collection
 
 from helpers.cosmwasm import CosmWasm
 from helpers.relayer import Relayer
@@ -30,14 +31,14 @@ WASM_FILE_NAME = "cw_ibc_example.wasm"
 KEY_NAME = "acc0"
 KEY_NAME2 = "second0"
 
-CHAIN_ID = "localjuno-1"
+chain_id = "localjuno-1"
 CHAIN_ID2 = "localjuno-2"
 
 
-def setup_env(rbs: list[RequestBuilder] = []):
+def setup_env(rbs: Collection[RequestBuilder]):
     for rb in rbs:
-        rb.bin("config keyring-backend test", log_output=True)
-        rb.bin("config output json", log_output=True)
+        rb.binary("config keyring-backend test", log_output=True)
+        rb.binary("config output json", log_output=True)
 
 
 def main():
@@ -45,40 +46,40 @@ def main():
     parent_dir = os.path.dirname(os.path.dirname(absolute_path))
     contracts_dir = os.path.join(parent_dir, "contracts")
 
-    relayer = Relayer(API_URL, CHAIN_ID)
+    relayer = Relayer(API_URL, chain_id)
 
     if True:
         print("⚙️ Setting env configuration")
         setup_env(
             [
-                RequestBuilder(apiEndpoint=API_URL, chainID=CHAIN_ID),
-                RequestBuilder(apiEndpoint=API_URL, chainID=CHAIN_ID2),
+                RequestBuilder(apiEndpoint=API_URL, chain_id=chain_id),
+                RequestBuilder(apiEndpoint=API_URL, chain_id=CHAIN_ID2),
             ]
         )
 
         print("\n📝 Uploading Contracts")
 
-        contract_1 = CosmWasm(API_URL, CHAIN_ID)
+        contract_1 = CosmWasm(API_URL, chain_id)
         contract_2 = CosmWasm(API_URL, CHAIN_ID2)
 
-        codeIdA = contract_1.store_contract(
+        code_id_a = contract_1.store_contract(
             KEY_NAME, os.path.join(contracts_dir, WASM_FILE_NAME)
         )
-        codeIdB = contract_2.store_contract(
+        code_id_b = contract_2.store_contract(
             KEY_NAME2, os.path.join(contracts_dir, WASM_FILE_NAME)
         )
 
         print("\n🪞 Instantiate Contracts on both chains")
         contract_1.instantiate_contract(
             account_key=KEY_NAME,
-            codeId=codeIdA,
+            code_id=code_id_a,
             msg="{}",
             label="contractA",
             flags="",
         )
         contract_2.instantiate_contract(
             account_key=KEY_NAME2,
-            codeId=codeIdB,
+            code_id=code_id_b,
             msg="{}",
             label="contractB",
             flags="",
@@ -97,13 +98,13 @@ def main():
         # # we can just skip the above steps.
         contract_1 = CosmWasm(
             API_URL,
-            CHAIN_ID,
-            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",  # noqa: E501
+            chain_id,
+            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
         )
         contract_2 = CosmWasm(
             API_URL,
             CHAIN_ID2,
-            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",  # noqa: E501
+            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
         )
 
     print(relayer.get_channels())
@@ -120,10 +121,10 @@ def main():
     # Ensure the Tx count increased += 1
     if True:
         print("\n❓ Query Count")
-        contract1Res = contract_1.query_contract(
+        contract1_res = contract_1.query_contract(
             {"get_count": {"channel": "channel-1"}}
         )
-        print(f"{contract1Res=}")
+        print(f"{contract1_res=}")
 
 
 if __name__ == "__main__":

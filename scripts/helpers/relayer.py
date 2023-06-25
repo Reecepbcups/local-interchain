@@ -2,17 +2,15 @@ import json
 
 import httpx
 
-# TODO: helpers/relayer.py
-
 
 class Relayer:
-    def __init__(self, API_URL: str, CHAIN_ID: str, log_output: bool = False):
-        self.api = API_URL
-        self.api_relayer = f"{API_URL}/relayer"
-        self.chain_id = CHAIN_ID
+    def __init__(self, api: str, chain_id: str, log_output: bool = False):
+        self.api = api
+        self.api_relayer = f"{api}/relayer"
+        self.chain_id = chain_id
         self.log_output = log_output
 
-    def exec(self, cmd: str, return_text: bool = False) -> dict:
+    def execute(self, cmd: str, return_text: bool = False) -> dict:
         if self.api == "":
             raise Exception("send_request URL is empty")
 
@@ -33,7 +31,7 @@ class Relayer:
         )
 
         if return_text:
-            return dict(text=res.text)
+            return {"text": res.text}
 
         try:
             # Is there ever a case this does not work?
@@ -50,14 +48,14 @@ class Relayer:
         if not dst.startswith("wasm."):
             dst = f"wasm.{dst}"
 
-        self.exec(
-            f"rly tx channel {path} --src-port {src} --dst-port {dst} --order {order} --version {version}"  # noqa: E501
+        self.execute(
+            f"rly tx channel {path} --src-port {src} --dst-port {dst} --order {order} --version {version}"
         )
 
         pass
 
     def flush(self, path: str, channel: str, log_output: bool = False) -> dict:
-        res = self.exec(
+        res = self.execute(
             f"rly transact flush {path} {channel}",
         )
         if log_output:

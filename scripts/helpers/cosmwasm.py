@@ -7,18 +7,16 @@ from httpx import get, post
 from helpers.file_cache import Cache
 from helpers.transactions import RequestBuilder, get_transaction_response
 
-# from util_base import contracts_json_path, contracts_path
-
 fp = os.path.realpath(__file__)
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(fp)))
 contracts_storage_dir = os.path.join(root_dir, "contracts")
 
 
 def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
-    print(f"[upload_file] ({rb.chainID}) {abs_path}")
+    print(f"[upload_file] ({rb.chain_id}) {abs_path}")
 
     payload = {
-        "chain_id": rb.chainID,
+        "chain_id": rb.chain_id,
         "key-name": key_name,
         "file-name": abs_path,
     }
@@ -37,22 +35,22 @@ def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
     )
 
     if res.status_code != 200:
-        return dict(error=res.text)
+        return {"error": res.text}
 
     return json.loads(res.text.replace("\n", ""))
 
 
 class CosmWasm:
-    def __init__(self, api: str, chainId: str, addr_override: str = ""):
+    def __init__(self, api: str, chain_id: str, addr_override: str = ""):
         self.api = api  # http://localhost:8080
-        self.chainId = chainId
+        self.chain_id = chain_id
 
-        self.codeId: int = -1
+        self.code_id: int = -1
         self.contractAddr = addr_override
 
-        self.rb = RequestBuilder(self.api, self.chainId)
+        self.rb = RequestBuilder(self.api, self.chain_id)
 
-        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"  # noqa: E501
+        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%chain_id% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
 
         # the last obtained Tx hash
         self.tx_hash = ""
@@ -69,26 +67,26 @@ class CosmWasm:
 
         contracts = Cache.get_cache_or_default({}, ictest_chain_start)
 
-        sha1 = Cache.get_file_hash(abs_path, self.chainId)
+        sha1 = Cache.get_file_hash(abs_path, self.chain_id)
         if sha1 in contracts["file_cache"]:
-            self.codeId = contracts["file_cache"][sha1]
+            self.code_id = contracts["file_cache"][sha1]
 
             sub_file_path = abs_path.split("/")[-1]
-            print(f"[Cache] CodeID={self.codeId} for {sub_file_path}")
+            print(f"[Cache] CodeID={self.code_id} for {sub_file_path}")
 
-            return self.codeId
+            return self.code_id
 
         res = upload_file(self.rb, key_name, abs_path)
         if "error" in res:
             raise Exception(res["error"])
 
-        self.codeId = Cache.update_cache(contracts, res["code_id"], sha1)
-        return self.codeId
+        self.code_id = Cache.update_cache(contracts, res["code_id"], sha1)
+        return self.code_id
 
     def instantiate_contract(
         self,
         account_key: str,
-        codeId: int | str,
+        code_id: int | str,
         msg: str | dict,
         label: str,
         admin: str | None = None,
@@ -104,35 +102,32 @@ class CosmWasm:
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
-        cmd = f"""tx wasm instantiate {codeId} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""  # noqa: E501
-        res = self.rb.bin(cmd)
+        cmd = f"""tx wasm instantiate {code_id} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""
+        res = self.rb.binary(cmd)
 
         tx_res = get_transaction_response(res)
         print(tx_res)
 
-        contractAddr = CosmWasm.get_contract_address(self.rb, tx_res.TxHash)
-        print(f"[instantiate_contract] {label} {contractAddr}")
+        contract_addr = CosmWasm.get_contract_address(self.rb, tx_res.TxHash)
+        print(f"[instantiate_contract] {label} {contract_addr}")
 
         self.tx_hash = tx_res.TxHash
-        self.contractAddr = contractAddr
+        self.contractAddr = contract_addr
         return self
 
     def execute_contract(
         self,
-        accountKey: str,
+        account_key: str,
         msg: str | dict,
         flags: str = "",
     ) -> "CosmWasm":
-        # if "--output=json" not in flags:
-        #     flags += " --output=json"
-
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
         # TODO: self.default_flag_set fails here for some reason...
-        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"  # noqa: E501
+        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%chain_id% --yes --gas=auto --gas-adjustment=2.0"
         print("[execute_contract]", cmd)
-        res = self.rb.bin(cmd)
+        res = self.rb.binary(cmd)
         print(res)
 
         tx_res = get_transaction_response(res)
@@ -151,15 +146,15 @@ class CosmWasm:
         return res
 
     @staticmethod
-    def base64_encode_msg(MSG: str | dict):
-        if isinstance(MSG, str):
-            MSG = dict(json.loads(MSG))
+    def base64_encode_msg(msg: str | dict):
+        if isinstance(msg, str):
+            msg = dict(json.loads(msg))
 
-        return b64encode(CosmWasm.remove_msg_spaces(MSG)).decode("utf-8")
+        return b64encode(CosmWasm.remove_msg_spaces(msg)).decode("utf-8")
 
     @staticmethod
-    def remove_msg_spaces(MSG: dict):
-        return json.dumps(MSG, separators=(",", ":")).encode("utf-8")
+    def remove_msg_spaces(msg: dict):
+        return json.dumps(msg, separators=(",", ":")).encode("utf-8")
 
     @staticmethod
     def get_contract_address(rb: RequestBuilder, tx_hash: str) -> str:
@@ -182,9 +177,9 @@ class CosmWasm:
     @staticmethod
     def download_base_contracts():
         files = [
-            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",  # noqa: E501
-            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",  # noqa: E501
-            "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",  # noqa: E501
+            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",
+            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",
+            "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",
         ]
 
         for url in files:
@@ -202,7 +197,7 @@ class CosmWasm:
     @staticmethod
     def download_mainnet_daodao_contracts():
         # From https://github.com/DA0-DA0/dao-contracts/releases
-        # v2.1.0
+        # v2.1.0 # noqa
         files = """cw20_base.wasm 2443
         cw20_stake.wasm 2444
         cw20_stake_external_rewards.wasm 2445
@@ -229,7 +224,7 @@ class CosmWasm:
         dao_voting_native_staked.wasm 2466"""
 
         for contract_file in files.split("\n"):
-            name, codeId = contract_file.strip().split(" ")
+            name, code_id = contract_file.strip().split(" ")
 
             file_path = os.path.join(contracts_storage_dir, name)
             if os.path.exists(file_path):
@@ -237,7 +232,7 @@ class CosmWasm:
 
             print(f"Downloading {name}")
             response = get(
-                f"https://api.juno.strange.love/cosmwasm/wasm/v1/code/{codeId}",  # noqa: E501
+                f"https://api.juno.strange.love/cosmwasm/wasm/v1/code/{code_id}",
                 headers={
                     "accept": "application/json",
                 },
@@ -253,19 +248,19 @@ class CosmWasm:
 if __name__ == "__main__":
     CosmWasm.download_base_contracts()
 
-    cw = CosmWasm(api="http://localhost:8080", chainId="localjuno-1")
+    cw = CosmWasm(api="http://localhost:8080", chain_id="localjuno-1")
 
-    codeId = cw.store_contract(
+    code_id = cw.store_contract(
         "acc0", os.path.join(contracts_storage_dir, "cw721_base.wasm")
     )
 
     cw.instantiate_contract(
         "acc0",
-        codeId,
+        code_id,
         {
             "name": "name",
             "symbol": "NFT",
-            # account in base.json genesis (acc0)
+            # account in base.json genesis (acc0) # noqa
             "minter": "juno1hj5fveer5cjtn4wd6wstzugjfdxzl0xps73ftl",
         },
         label="contract",

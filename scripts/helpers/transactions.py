@@ -1,13 +1,8 @@
 import json
 from dataclasses import dataclass
-
-# from util_req import RequestBase, send_request
-# from util_req import RequestBase, RequestType
 from enum import Enum
 
 from httpx import post
-
-# from util_base import contracts_path, current_dir, parent_dir
 
 
 def get_tx_hash(res: str | dict) -> str:
@@ -67,20 +62,19 @@ class ActionHandler:
 
 
 class RequestBuilder:
-    def __init__(self, api: str, chainID: str, log_output: bool = False):
+    def __init__(self, api: str, chain_id: str, log_output: bool = False):
         self.apiEndpoint = api
-        self.chainID = chainID
+        self.chain_id = chain_id
         self.log = log_output
 
         if self.apiEndpoint == "":
             raise Exception("RequestBuilder apiEndpoint is empty")
 
-        if self.chainID == "":
-            raise Exception("RequestBuilder chainID is empty")
+        if self.chain_id == "":
+            raise Exception("RequestBuilder chain_id is empty")
 
-    # TODO: Add specific for each?
-    def bin(self, cmd: str, log_output: bool = False) -> dict:
-        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.BIN)
+    def binary(self, cmd: str, log_output: bool = False) -> dict:
+        rb = RequestBase(self.apiEndpoint, self.chain_id, RequestType.BIN)
         return send_request(
             rb, cmd, log_output=(log_output if log_output else self.log)
         )
@@ -94,7 +88,7 @@ class RequestBuilder:
         elif cmd.lower().startswith("q "):
             cmd = cmd[2:]
         """
-        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.QUERY)
+        rb = RequestBase(self.apiEndpoint, self.chain_id, RequestType.QUERY)
         return send_request(
             rb, cmd, log_output=(log_output if log_output else self.log)
         )
@@ -103,29 +97,19 @@ class RequestBuilder:
     def query_tx(self, response: str | dict, log_output: bool = False) -> dict:
         tx_hash = get_tx_hash(response)
         if len(tx_hash) == 0:
-            return dict(error="tx_hash is empty")
+            return {"error": "tx_hash is empty"}
 
         res = self.query(
             f"tx {tx_hash} --output json",
             log_output=(log_output if log_output else self.log),
         )
-        return dict(tx=res)
-
-    # TODO: i do not use anywhere atm, remove?
-    def exec(self, cmd: str, log_output: bool = False) -> dict:
-        rb = RequestBase(self.apiEndpoint, self.chainID, RequestType.EXEC)
-        return send_request(
-            rb,
-            cmd,
-            log_output=(log_output if log_output else self.log),
-        )
+        return {"tx": res}
 
 
-# util_req.py
 def send_request(
-    base: RequestBase = RequestBase("", "", RequestType.BIN),
+    base: RequestBase,
     cmd: str = "",
-    returnText: bool = False,
+    return_text: bool = False,
     log_output: bool = False,
 ) -> dict:
     if base.request_type == RequestType.QUERY:
@@ -134,9 +118,7 @@ def send_request(
         elif cmd.lower().startswith("q "):
             cmd = cmd[2:]
 
-    payload = ActionHandler(
-        base.chain_id, base.request_type.value, cmd
-    ).to_json()  # noqa: E501
+    payload = ActionHandler(base.chain_id, base.request_type.value, cmd).to_json()
 
     if log_output:
         print("[send_request data]", payload)
@@ -144,17 +126,16 @@ def send_request(
     res = post(
         base.URL,
         json=payload,
-        headers={"Content-Type": "application/json"},  # noqa: E501
+        headers={"Content-Type": "application/json"},
     )
 
     if log_output:
-        # ex: config and such
         if res.text != "{}":
             print("[send_request resp]", res.text)
 
     # This is messy, clean up
-    if returnText:
-        return dict(text=res.text)
+    if return_text:
+        return {"text": res.text}
 
     try:
         # Is there ever a case this does not work?

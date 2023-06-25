@@ -30,7 +30,7 @@ class Cache:
             cache_time = dict(json.load(f)).get("start_time", 0)
 
         if cache_time == 0 or cache_time != ictest_chain_start:
-            # reset cache, and set cache time to current ictest time
+            # reset cache, and set cache time to current interchain_test time # noqa
             contracts["start_time"] = ictest_chain_start
             contracts["file_cache"] = {}
 
@@ -44,26 +44,26 @@ class Cache:
         return contracts
 
     @staticmethod
-    def update_cache(contracts: dict, code_id: str | int, shaHash: str) -> int:
-        contracts["file_cache"][shaHash] = int(code_id)
+    def update_cache(contracts: dict, code_id: str | int, sha_hash: str) -> int:
+        contracts["file_cache"][sha_hash] = int(code_id)
         with open(contracts_json_path, "w") as f:
             json.dump(contracts, f, indent=4)
         return int(code_id)
 
     @staticmethod
-    def get_file_hash(rel_file_path: str, chainId: str) -> str:
-        BUF_SIZE = 65536  # 64k chunks
-        sha1 = hashlib.sha1()
+    def get_file_hash(rel_file_path: str, chain_id: str) -> str:
+        buffer = 65536
+        sha1 = hashlib.sha1(usedforsecurity=False)
 
         file_path = os.path.join(contracts_storage_dir, rel_file_path)
 
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        sha1.update(chainId.replace("-", "").encode("utf-8"))
+        sha1.update(chain_id.replace("-", "").encode("utf-8"))
         with open(file_path, "rb") as f:
             while True:
-                bz = f.read(BUF_SIZE)
+                bz = f.read(buffer)
                 if not bz:
                     break
                 sha1.update(bz)
