@@ -23,7 +23,7 @@ Follow [this guide](./docs/WINDOWS.md) to setup the Windows OS environment for i
 ## Running
 
 - *(optional)* Edit `./configs/relayer.json`
-- Copy: `cp ./configs/chains.json ./configs/mytest1_ignored.json`
+- Copy: `cp ./configs/base_ibc.json ./configs/mytest1_ignored.json`
 - Run: `local-ic start mytest1_ignored.json`
 - Change directory `ICTEST_HOME=/root/example/local-interchain local-ic start myother_ignored.json`
 
