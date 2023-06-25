@@ -45,7 +45,7 @@ class CosmWasm:
         self.chain_id = chain_id
 
         self.code_id: int = -1
-        self.contractAddr = addr_override
+        self.address = addr_override
 
         self.rb = RequestBuilder(self.api, self.chain_id)
 
@@ -57,10 +57,10 @@ class CosmWasm:
     def get_latest_tx_hash(self) -> str:
         return self.tx_hash
 
-    def store_contract(self, key_name: str, abs_path: str) -> int:
+    def store_contract(self, key_name: str, abs_path: str) -> "CosmWasm":
         ictest_chain_start = Cache.get_chain_start_time_from_logs()
         if ictest_chain_start == -1:
-            return -1
+            return self
 
         Cache.default_contracts_json()
 
@@ -72,15 +72,14 @@ class CosmWasm:
 
             sub_file_path = abs_path.split("/")[-1]
             print(f"[Cache] CodeID={self.code_id} for {sub_file_path}")
-
-            return self.code_id
+            return self
 
         res = upload_file(self.rb, key_name, abs_path)
         if "error" in res:
             raise Exception(res["error"])
 
         self.code_id = Cache.update_cache(contracts, res["code_id"], sha1)
-        return self.code_id
+        return self
 
     def instantiate_contract(
         self,
@@ -92,7 +91,7 @@ class CosmWasm:
         flags: str = "",
     ) -> "CosmWasm":
         # not sure if we want this logic or not...
-        if len(self.contractAddr) > 0:
+        if len(self.address) > 0:
             raise Exception("Contract address already set")
 
         if admin is None and "--no-admin" not in flags:
@@ -105,7 +104,6 @@ class CosmWasm:
         res = self.rb.binary(cmd)
 
         tx_res = get_transaction_response(res)
-        print(tx_res)
 
         # issue, such as signature verification or lack of fees etc
         if tx_res.RawLog and len(tx_res.RawLog) > 5:
@@ -115,7 +113,7 @@ class CosmWasm:
         print(f"[instantiate_contract] {label} {contract_addr}")
 
         self.tx_hash = tx_res.TxHash
-        self.contractAddr = contract_addr
+        self.address = contract_addr
         return self
 
     def execute_contract(
@@ -128,13 +126,15 @@ class CosmWasm:
             msg = json.dumps(msg, separators=(",", ":"))
 
         # TODO: self.default_flag_set fails here for some reason...
-        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
+        cmd = f"tx wasm execute {self.address} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
         print("[execute_contract]", cmd)
         res = self.rb.binary(cmd)
         print(res)
 
         tx_res = get_transaction_response(res)
-        print(tx_res)
+
+        if tx_res.RawLog and len(tx_res.RawLog) > 5:
+            print(tx_res.RawLog)
 
         self.tx_hash = tx_res.TxHash
 
@@ -144,7 +144,7 @@ class CosmWasm:
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
-        cmd = f"query wasm contract-state smart {self.contractAddr} {msg}"
+        cmd = f"query wasm contract-state smart {self.address} {msg}"
         res = self.rb.query(cmd)
         return res
 
@@ -253,13 +253,11 @@ if __name__ == "__main__":
 
     cw = CosmWasm(api="http://localhost:8080", chain_id="localjuno-1")
 
-    code_id = cw.store_contract(
-        "acc0", os.path.join(contracts_storage_dir, "cw721_base.wasm")
-    )
+    cw.store_contract("acc0", os.path.join(contracts_storage_dir, "cw721_base.wasm"))
 
     cw.instantiate_contract(
         "acc0",
-        code_id,
+        cw.code_id,
         {
             "name": "name",
             "symbol": "NFT",
@@ -270,7 +268,7 @@ if __name__ == "__main__":
         flags="",
     )
     print(cw.tx_hash)
-    print(cw.contractAddr)
+    print(cw.address)
 
     cw.execute_contract(
         "acc0",

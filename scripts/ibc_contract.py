@@ -62,24 +62,22 @@ def main():
         contract_1 = CosmWasm(API_URL, chain_id)
         contract_2 = CosmWasm(API_URL, CHAIN_ID2)
 
-        code_id_a = contract_1.store_contract(
-            KEY_NAME, os.path.join(contracts_dir, WASM_FILE_NAME)
-        )
-        code_id_b = contract_2.store_contract(
+        contract_1.store_contract(KEY_NAME, os.path.join(contracts_dir, WASM_FILE_NAME))
+        contract_2.store_contract(
             KEY_NAME2, os.path.join(contracts_dir, WASM_FILE_NAME)
         )
 
         print("\n🪞 Instantiate Contracts on both chains")
         contract_1.instantiate_contract(
             account_key=KEY_NAME,
-            code_id=code_id_a,
+            code_id=contract_1.code_id,
             msg="{}",
             label="contractA",
             flags="",
         )
         contract_2.instantiate_contract(
             account_key=KEY_NAME2,
-            code_id=code_id_b,
+            code_id=contract_1.code_id,
             msg="{}",
             label="contractB",
             flags="",
@@ -88,8 +86,8 @@ def main():
         print("\n📤 Create Contract Connection")
         relayer.create_wasm_connection(
             path="juno-ibc-1",
-            src=contract_1.contractAddr,
-            dst=contract_2.contractAddr,
+            src=contract_1.address,
+            dst=contract_2.address,
             order="unordered",
             version="counter-1",
         )
@@ -99,12 +97,12 @@ def main():
         contract_1 = CosmWasm(
             API_URL,
             chain_id,
-            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+            addr_override="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
         )
         contract_2 = CosmWasm(
             API_URL,
             CHAIN_ID2,
-            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+            addr_override="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
         )
 
     print(relayer.get_channels())

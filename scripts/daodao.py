@@ -28,18 +28,15 @@ def main():
     CosmWasm.download_mainnet_daodao_contracts()
 
     # == Create contract object & upload ==
-    dao_proposal_single = CosmWasm(API_URL, chain_id)
-    dao_proposal_single.store_contract(
+    dao_proposal_single = CosmWasm(API_URL, chain_id).store_contract(
         KEY_NAME, os.path.join(contracts_dir, "dao_proposal_single.wasm")
     )
 
-    dao_voting_native_staked = CosmWasm(API_URL, chain_id)
-    dao_voting_native_staked.store_contract(
+    dao_voting_native_staked = CosmWasm(API_URL, chain_id).store_contract(
         KEY_NAME, os.path.join(contracts_dir, "dao_voting_native_staked.wasm")
     )
 
-    dao_core = CosmWasm(API_URL, chain_id)
-    dao_core.store_contract(
+    dao_core = CosmWasm(API_URL, chain_id).store_contract(
         KEY_NAME,
         os.path.join(contracts_dir, "dao_core.wasm"),
     )
@@ -93,7 +90,7 @@ def main():
         msg=cw_core_init_msg,
         label="dao_core",
     )
-    print(f"{dao_core.contractAddr=}")
+    print(f"{dao_core.address=}")
 
 
 if __name__ == "__main__":
