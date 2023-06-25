@@ -2,7 +2,7 @@
     "chains": [
         {
             "name": "juno",            
-            "chain-id": "localjuno-1",
+            "chain_id": "localjuno-1",
             "denom": "ujuno",
             "binary": "junod",
             "bech32-prefix": "juno",
@@ -41,13 +41,13 @@
                 "accounts": [
                     {
                         "name": "acc0",
-                        "address": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
+                        "address": "juno1hj5fveer5cjtn4wd6wstzugjfdxzl0xps73ftl",
                         "amount": "10000000%DENOM%",
                         "mnemonic": "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry"
                     },
                     {
                         "name": "acc1",
-                        "address": "juno1hj5fveer5cjtn4wd6wstzugjfdxzl0xps73ftl",
+                        "address": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
                         "amount": "10000000%DENOM%",
                         "mnemonic": "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise"
                     }
@@ -64,7 +64,7 @@
         },
         {
             "name": "juno",
-            "chain-id": "localjuno-2",
+            "chain_id": "localjuno-2",
             "binary": "junod",
             "bech32-prefix": "juno",
             "denom": "ujuno",
@@ -80,7 +80,7 @@
         },
         {
             "name": "gaia",
-            "chain-id": "localcosmos-1",
+            "chain_id": "localcosmos-1",
             "denom": "uatom",
             "binary": "gaiad",
             "bech32-prefix": "cosmos",

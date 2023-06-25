@@ -38,7 +38,7 @@ func LinkIBCPaths(ibcpaths map[string][]int, chains []ibc.Chain, ic *interchaint
 	}
 }
 
-// TODO: Get all channels a chain is connected too. Map it to the said chain-id. Then output to Logs.
+// TODO: Get all channels a chain is connected too. Map it to the said chain_id. Then output to Logs.
 func GetChannelConnections(ctx context.Context, ibcpaths map[string][]int, chains []ibc.Chain, ic *interchaintest.Interchain, r ibc.Relayer, eRep ibc.RelayerExecReporter) []types.IBCChannel {
 	if len(ibcpaths) == 0 {
 		return []types.IBCChannel{}

@@ -7,7 +7,7 @@ type MainLogs struct {
 }
 
 type LogOutput struct {
-	ChainID     string   `json:"chain-id"`
+	ChainID     string   `json:"chain_id"`
 	ChainName   string   `json:"chain-name"`
 	RPCAddress  string   `json:"rpc-address"`
 	GRPCAddress string   `json:"grpc-address"`

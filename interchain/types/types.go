@@ -22,6 +22,6 @@ type DockerImage struct {
 }
 
 type IBCChannel struct {
-	ChainID string             `json:"chain-id"`
+	ChainID string             `json:"chain_id"`
 	Channel *ibc.ChannelOutput `json:"channel"`
 }
