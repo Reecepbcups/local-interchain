@@ -13,7 +13,8 @@ Steps:
 
 - Init both contracts
 - Create a channel/connection between both (counter-1 version)
-- Execute on a contract, which then sends a packet to the other contract andc increments the counter
+- Execute on a contract
+- -> sends a packet to the other contract and inc the counter
 - Query the counter to ensure it increased.
 """
 
@@ -40,8 +41,6 @@ def setup_env(rbs: list[RequestBuilder] = []):
 
 
 def main():
-    # FLAGS = "--home %HOME% --node %RPC% --chain_id %CHAIN_ID% --yes --output=json --gas=auto --gas-adjustment=2.0"
-
     absolute_path = os.path.abspath(__file__)
     parent_dir = os.path.dirname(os.path.dirname(absolute_path))
     contracts_dir = os.path.join(parent_dir, "contracts")
@@ -94,16 +93,17 @@ def main():
             version="counter-1",
         )
     else:
-        # If we already uploaded the contracts and instantiated them, we can just skip the above steps.
+        # If we already uploaded the contracts and instantiated them
+        # # we can just skip the above steps.
         contract_1 = CosmWasm(
             API_URL,
             CHAIN_ID,
-            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",  # noqa: E501
         )
         contract_2 = CosmWasm(
             API_URL,
             CHAIN_ID2,
-            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+            contractAddrOverride="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",  # noqa: E501
         )
 
     print(relayer.get_channels())

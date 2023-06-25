@@ -5,7 +5,7 @@ from dataclasses import dataclass
 # from util_req import RequestBase, RequestType
 from enum import Enum
 
-from httpx import get, post
+from httpx import post
 
 # from util_base import contracts_path, current_dir, parent_dir
 
@@ -15,7 +15,7 @@ def get_tx_hash(res: str | dict) -> str:
     if isinstance(res, str):
         try:
             res = json.loads(res)
-        except:
+        except Exception:
             pass
 
     tx_hash = ""
@@ -67,8 +67,8 @@ class ActionHandler:
 
 
 class RequestBuilder:
-    def __init__(self, apiEndpoint: str, chainID: str, log_output: bool = False):
-        self.apiEndpoint = apiEndpoint
+    def __init__(self, api: str, chainID: str, log_output: bool = False):
+        self.apiEndpoint = api
         self.chainID = chainID
         self.log = log_output
 
@@ -134,26 +134,33 @@ def send_request(
         elif cmd.lower().startswith("q "):
             cmd = cmd[2:]
 
-    data = ActionHandler(base.chain_id, base.request_type.value, cmd).to_json()
-    if log_output:
-        print("[send_request data]", data)
+    payload = ActionHandler(
+        base.chain_id, base.request_type.value, cmd
+    ).to_json()  # noqa: E501
 
-    r = post(base.URL, json=data, headers={"Content-Type": "application/json"})
+    if log_output:
+        print("[send_request data]", payload)
+
+    res = post(
+        base.URL,
+        json=payload,
+        headers={"Content-Type": "application/json"},  # noqa: E501
+    )
 
     if log_output:
         # ex: config and such
-        if r.text != "{}":
-            print("[send_request resp]", r.text)
+        if res.text != "{}":
+            print("[send_request resp]", res.text)
 
     # This is messy, clean up
     if returnText:
-        return dict(text=r.text)
+        return dict(text=res.text)
 
     try:
         # Is there ever a case this does not work?
-        return json.loads(r.text)
-    except:
-        return {"parse_error": r.text}
+        return json.loads(res.text)
+    except Exception:
+        return {"parse_error": res.text}
 
 
 def get_transaction_response(send_req_res: str | dict) -> TransactionResponse:
@@ -162,7 +169,7 @@ def get_transaction_response(send_req_res: str | dict) -> TransactionResponse:
     if isinstance(send_req_res, str):
         try:
             json.loads(send_req_res)
-        except:
+        except Exception:
             txr.RawLog = send_req_res
             return txr
 

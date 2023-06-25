@@ -2,7 +2,8 @@ import hashlib
 import json
 import os
 
-root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+fp = os.path.realpath(__file__)
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(fp)))
 contracts_storage_dir = os.path.join(root_dir, "contracts")
 
 contracts_json_path = os.path.join(root_dir, "configs", "contracts.json")
@@ -43,8 +44,8 @@ class Cache:
         return contracts
 
     @staticmethod
-    def update_cache(contracts: dict, code_id: str | int, sha_hash: str) -> int:
-        contracts["file_cache"][sha_hash] = int(code_id)
+    def update_cache(contracts: dict, code_id: str | int, shaHash: str) -> int:
+        contracts["file_cache"][shaHash] = int(code_id)
         with open(contracts_json_path, "w") as f:
             json.dump(contracts, f, indent=4)
         return int(code_id)
@@ -62,10 +63,10 @@ class Cache:
         sha1.update(chainId.replace("-", "").encode("utf-8"))
         with open(file_path, "rb") as f:
             while True:
-                data = f.read(BUF_SIZE)
-                if not data:
+                bz = f.read(BUF_SIZE)
+                if not bz:
                     break
-                sha1.update(data)
+                sha1.update(bz)
 
         return sha1.hexdigest()
 

@@ -1,28 +1,23 @@
 import json
 import os
-import time
 from base64 import b64decode, b64encode
 
-from helpers.file_cache import Cache
-from helpers.transactions import (
-    ActionHandler,
-    RequestBuilder,
-    TransactionResponse,
-    get_transaction_response,
-    send_request,
-)
 from httpx import get, post
+
+from helpers.file_cache import Cache
+from helpers.transactions import RequestBuilder, get_transaction_response
 
 # from util_base import contracts_json_path, contracts_path
 
-root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+fp = os.path.realpath(__file__)
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(fp)))
 contracts_storage_dir = os.path.join(root_dir, "contracts")
 
 
 def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
     print(f"[upload_file] ({rb.chainID}) {abs_path}")
 
-    data = {
+    payload = {
         "chain_id": rb.chainID,
         "key-name": key_name,
         "file-name": abs_path,
@@ -34,17 +29,17 @@ def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
     else:
         url += "/upload"
 
-    r = post(
+    res = post(
         url,
-        json=data,
+        json=payload,
         headers={"Content-Type": "application/json"},
         timeout=120,
     )
 
-    if r.status_code != 200:
-        return dict(error=r.text)
+    if res.status_code != 200:
+        return dict(error=res.text)
 
-    return json.loads(r.text.replace("\n", ""))
+    return json.loads(res.text.replace("\n", ""))
 
 
 class CosmWasm:
@@ -57,7 +52,7 @@ class CosmWasm:
 
         self.rb = RequestBuilder(self.api, self.chainId)
 
-        self.default_flag_set = f"--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
+        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"  # noqa: E501
 
         # the last obtained Tx hash
         self.tx_hash = ""
@@ -77,7 +72,10 @@ class CosmWasm:
         sha1 = Cache.get_file_hash(abs_path, self.chainId)
         if sha1 in contracts["file_cache"]:
             self.codeId = contracts["file_cache"][sha1]
-            print(f"[Cache] CodeID={self.codeId} for {abs_path.split('/')[-1]}")
+
+            sub_file_path = abs_path.split("/")[-1]
+            print(f"[Cache] CodeID={self.codeId} for {sub_file_path}")
+
             return self.codeId
 
         res = upload_file(self.rb, key_name, abs_path)
@@ -106,7 +104,7 @@ class CosmWasm:
         if isinstance(msg, dict):
             msg = json.dumps(msg, separators=(",", ":"))
 
-        cmd = f"""tx wasm instantiate {codeId} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""
+        cmd = f"""tx wasm instantiate {codeId} {msg} --label={label} --from={account_key} {self.default_flag_set} {flags}"""  # noqa: E501
         res = self.rb.bin(cmd)
 
         tx_res = get_transaction_response(res)
@@ -132,7 +130,7 @@ class CosmWasm:
             msg = json.dumps(msg, separators=(",", ":"))
 
         # TODO: self.default_flag_set fails here for some reason...
-        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
+        cmd = f"tx wasm execute {self.contractAddr} {msg} --from={accountKey} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"  # noqa: E501
         print("[execute_contract]", cmd)
         res = self.rb.bin(cmd)
         print(res)
@@ -184,9 +182,9 @@ class CosmWasm:
     @staticmethod
     def download_base_contracts():
         files = [
-            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",
-            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",
-            "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",
+            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw20_base.wasm",  # noqa: E501
+            "https://github.com/CosmWasm/cw-plus/releases/latest/download/cw4_group.wasm",  # noqa: E501
+            "https://github.com/CosmWasm/cw-nfts/releases/latest/download/cw721_base.wasm",  # noqa: E501
         ]
 
         for url in files:
@@ -197,9 +195,9 @@ class CosmWasm:
                 continue
 
             print(f"Downloading {name} to {file_path}")
-            r = get(url, follow_redirects=True)
+            res = get(url, follow_redirects=True)
             with open(file_path, "wb") as f:
-                f.write(r.content)
+                f.write(res.content)
 
     @staticmethod
     def download_mainnet_daodao_contracts():
@@ -230,9 +228,8 @@ class CosmWasm:
         dao_voting_cw721_staked.wasm 2465
         dao_voting_native_staked.wasm 2466"""
 
-        for file in files.split("\n"):
-            file = file.strip()
-            name, codeId = file.split(" ")
+        for contract_file in files.split("\n"):
+            name, codeId = contract_file.strip().split(" ")
 
             file_path = os.path.join(contracts_storage_dir, name)
             if os.path.exists(file_path):
@@ -240,15 +237,15 @@ class CosmWasm:
 
             print(f"Downloading {name}")
             response = get(
-                f"https://api.juno.strange.love/cosmwasm/wasm/v1/code/{codeId}",
+                f"https://api.juno.strange.love/cosmwasm/wasm/v1/code/{codeId}",  # noqa: E501
                 headers={
                     "accept": "application/json",
                 },
                 timeout=60,
             )
-            data = response.json()
+            resp = response.json()
 
-            binary = b64decode(data["data"])
+            binary = b64decode(resp["data"])
             with open(file_path, "wb") as f:
                 f.write(binary)
 

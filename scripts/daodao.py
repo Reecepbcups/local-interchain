@@ -10,17 +10,14 @@ Steps:
 - Profit
 """
 
-import base64
 import os
 
+from helpers import CosmWasm
 from helpers.transactions import RequestBuilder
 from util_base import API_URL
 
 KEY_NAME = "acc0"
 CHAIN_ID = "localjuno-1"
-
-
-from helpers import CosmWasm
 
 
 def main():
@@ -45,7 +42,10 @@ def main():
     )
 
     dao_core = CosmWasm(API_URL, CHAIN_ID)
-    dao_core.store_contract(KEY_NAME, os.path.join(contracts_dir, "dao_core.wasm"))
+    dao_core.store_contract(
+        KEY_NAME,
+        os.path.join(contracts_dir, "dao_core.wasm"),
+    )
 
     # https://github.com/DA0-DA0/dao-contracts/blob/main/scripts/create-v2-dao-native-voting.sh
     MODULE_MSG = {

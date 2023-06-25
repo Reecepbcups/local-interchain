@@ -16,30 +16,30 @@ class Relayer:
         if self.api == "":
             raise Exception("send_request URL is empty")
 
-        data = {
+        payload = {
             "chain_id": self.chain_id,
             "action": "execute",
             "cmd": cmd,
         }
 
         if self.log_output:
-            print("[relayer]", data["cmd"])
+            print("[relayer]", payload["cmd"])
 
-        r = httpx.post(
+        res = httpx.post(
             self.api_relayer,
-            json=data,
+            json=payload,
             headers={"Content-Type": "application/json"},
             timeout=120,
         )
 
         if return_text:
-            return dict(text=r.text)
+            return dict(text=res.text)
 
         try:
             # Is there ever a case this does not work?
-            return json.loads(r.text)
-        except:
-            return {"parse_error": r.text}
+            return json.loads(res.text)
+        except Exception:
+            return {"parse_error": res.text}
 
     def create_wasm_connection(
         self, path: str, src: str, dst: str, order: str, version: str
@@ -51,7 +51,7 @@ class Relayer:
             dst = f"wasm.{dst}"
 
         self.exec(
-            f"rly transact channel {path} --src-port {src} --dst-port {dst} --order {order} --version {version}"
+            f"rly tx channel {path} --src-port {src} --dst-port {dst} --order {order} --version {version}"  # noqa: E501
         )
 
         pass
@@ -65,7 +65,7 @@ class Relayer:
         return res
 
     def get_channels(self) -> dict:
-        r = httpx.post(
+        res = httpx.post(
             self.api_relayer,
             json={
                 "chain_id": self.chain_id,
@@ -73,4 +73,4 @@ class Relayer:
             },
             headers={"Content-Type": "application/json"},
         )
-        return json.loads(r.text)
+        return json.loads(res.text)
