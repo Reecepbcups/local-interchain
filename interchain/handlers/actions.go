@@ -10,24 +10,30 @@ import (
 	"github.com/reecepbcups/localinterchain/interchain/util"
 
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
 type actions struct {
 	ctx  context.Context
 	vals map[string]*cosmos.ChainNode
-}
 
-func NewActions(ctx context.Context, vals map[string]*cosmos.ChainNode) *actions {
-	return &actions{
-		ctx:  ctx,
-		vals: vals,
-	}
+	relayer *ibc.Relayer
+	eRep    ibc.RelayerExecReporter
 }
 
 type ActionHandler struct {
 	ChainId string `json:"chain_id"`
 	Action  string `json:"action"`
 	Cmd     string `json:"cmd"`
+}
+
+func NewActions(ctx context.Context, vals map[string]*cosmos.ChainNode, relayer *ibc.Relayer, eRep ibc.RelayerExecReporter) *actions {
+	return &actions{
+		ctx:     ctx,
+		vals:    vals,
+		relayer: relayer,
+		eRep:    eRep,
+	}
 }
 
 func (a *actions) PostActions(w http.ResponseWriter, r *http.Request) {
@@ -52,9 +58,10 @@ func (a *actions) PostActions(w http.ResponseWriter, r *http.Request) {
 	cmd := strings.Split(ah.Cmd, " ")
 
 	// Output can only ever be 1 thing. So we check which is set, then se the output to the user.
-	var output string
+	var output []byte
 	var stdout, stderr []byte
 
+	// Node / Docker Linux Actions
 	switch action {
 	case "q", "query":
 		stdout, stderr, err = (a.vals[chainId]).ExecQuery(a.ctx, cmd...)
@@ -64,16 +71,71 @@ func (a *actions) PostActions(w http.ResponseWriter, r *http.Request) {
 		stdout, stderr, err = (a.vals[chainId]).Exec(a.ctx, cmd, []string{})
 	}
 
+	// Relayer Actions if the above is not used.
+	if len(stdout) == 0 && len(stderr) == 0 && err == nil {
+
+		if err := a.relayerCheck(w, r); err != nil {
+			return
+		}
+
+		switch action {
+		case "stop-relayer", "stop_relayer", "stopRelayer":
+			err = (*a.relayer).StopRelayer(a.ctx, a.eRep)
+
+		case "start-relayer", "start_relayer", "startRelayer":
+			paths := strings.FieldsFunc(ah.Cmd, func(c rune) bool {
+				return c == ',' || c == ' '
+			})
+			err = (*a.relayer).StartRelayer(a.ctx, a.eRep, paths...)
+
+		case "relayer", "relayer-exec", "relayer_exec", "relayerExec":
+			if !strings.Contains(ah.Cmd, "--home") {
+				// does this ever change for any other relayer?
+				cmd = append(cmd, "--home", "/home/relayer")
+			}
+
+			res := (*a.relayer).Exec(a.ctx, a.eRep, cmd, []string{})
+			stdout = []byte(res.Stdout)
+			stderr = []byte(res.Stderr)
+			err = res.Err
+
+		case "get_channels", "get-channels", "getChannels":
+			res, err := (*a.relayer).GetChannels(a.ctx, a.eRep, chainId)
+			if err != nil {
+				util.WriteError(w, err)
+				return
+			}
+
+			r, err := json.Marshal(res)
+			if err != nil {
+				util.WriteError(w, err)
+				return
+			}
+			stdout = r
+		}
+	}
+
 	if len(stdout) > 0 {
-		output = string(stdout)
+		output = stdout
 	} else if len(stderr) > 0 {
-		output = string(stderr)
+		output = stderr
 	} else if err == nil {
-		output = "{}"
+		output = []byte("{}")
 	} else {
-		output = fmt.Sprintf(`%s`, err)
+		output = []byte(fmt.Sprintf(`%s`, err))
 	}
 
 	// Send the response
 	util.Write(w, []byte(output))
+}
+
+func (a *actions) relayerCheck(w http.ResponseWriter, r *http.Request) error {
+	var err error = nil
+
+	if a.relayer == nil {
+		util.Write(w, []byte(`{"error":"relayer not configured for this setup"}`))
+		err = fmt.Errorf("relayer not configured for this setup")
+	}
+
+	return err
 }

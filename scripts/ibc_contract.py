@@ -32,7 +32,7 @@ KEY_NAME = "acc0"
 KEY_NAME2 = "second0"
 
 chain_id = "localjuno-1"
-CHAIN_ID2 = "localjuno-2"
+chain_id2 = "localjuno-2"
 
 
 def setup_env(rbs: Collection[RequestBuilder]):
@@ -53,14 +53,13 @@ def main():
         setup_env(
             [
                 RequestBuilder(api=API_URL, chain_id=chain_id, log_output=True),
-                RequestBuilder(api=API_URL, chain_id=CHAIN_ID2, log_output=True),
+                RequestBuilder(api=API_URL, chain_id=chain_id2, log_output=True),
             ]
         )
 
-        print("\n📝 Uploading Contracts")
-
+        print("\n📝 Storing Contracts")
         contract_1 = CosmWasm(API_URL, chain_id)
-        contract_2 = CosmWasm(API_URL, CHAIN_ID2)
+        contract_2 = CosmWasm(API_URL, chain_id2)
 
         contract_1.store_contract(KEY_NAME, os.path.join(contracts_dir, WASM_FILE_NAME))
         contract_2.store_contract(
@@ -101,10 +100,11 @@ def main():
         )
         contract_2 = CosmWasm(
             API_URL,
-            CHAIN_ID2,
+            chain_id2,
             addr_override="juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
         )
 
+    print("\n📖 Checking Channels")
     print(relayer.get_channels())
 
     # 'Increment {}' execute on chain b, check chainA after.

@@ -6,7 +6,6 @@ import httpx
 class Relayer:
     def __init__(self, api: str, chain_id: str, log_output: bool = False):
         self.api = api
-        self.api_relayer = f"{api}/relayer"
         self.chain_id = chain_id
         self.log_output = log_output
 
@@ -16,7 +15,7 @@ class Relayer:
 
         payload = {
             "chain_id": self.chain_id,
-            "action": "execute",
+            "action": "relayer-exec",
             "cmd": cmd,
         }
 
@@ -24,7 +23,7 @@ class Relayer:
             print("[relayer]", payload["cmd"])
 
         res = httpx.post(
-            self.api_relayer,
+            self.api,
             json=payload,
             headers={"Content-Type": "application/json"},
             timeout=120,
@@ -52,23 +51,24 @@ class Relayer:
             f"rly tx channel {path} --src-port {src} --dst-port {dst} --order {order} --version {version}"
         )
 
-        pass
-
     def flush(self, path: str, channel: str, log_output: bool = False) -> dict:
         res = self.execute(
             f"rly transact flush {path} {channel}",
         )
         if log_output:
             print(res)
+
         return res
 
     def get_channels(self) -> dict:
+        payload = {
+            "chain_id": self.chain_id,
+            "action": "get_channels",
+        }
+
         res = httpx.post(
-            self.api_relayer,
-            json={
-                "chain_id": self.chain_id,
-                "action": "get_channels",
-            },
+            self.api,
+            json=payload,
             headers={"Content-Type": "application/json"},
         )
         return json.loads(res.text)
