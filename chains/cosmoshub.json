@@ -1,14 +1,13 @@
 {    
     "chains": [
         {
-            "name": "juno",            
-            "chain_id": "localjuno-1",
-            "denom": "ujuno",
-            "binary": "junod",
-            "bech32-prefix": "juno",
-            "docker-image": {
-                "repository": "ghcr.io/cosmoscontracts/juno-e2e",
-                "version": "v14.1.0"
+            "name": "gaia",            
+            "chain_id": "localcosmos-1",
+            "denom": "uatom",
+            "binary": "gaiad",
+            "bech32-prefix": "cosmos",
+            "docker-image": {                
+                "version": "v10.0.1"
             },
             "use-new-genesis-command": false,
             "gas-prices": "0%DENOM%",
@@ -20,8 +19,7 @@
             "number-node": 0,
             "blocks-ttl": -1,            
             "debugging": true,
-            "block-time": "500ms",
-            "encoding-options": ["juno"],
+            "block-time": "500ms",            
             "genesis": {
                 "modify": [
                     {
@@ -34,26 +32,17 @@
                     },
                     {
                         "key": "app_state.gov.deposit_params.min_deposit.0.denom",
-                        "value": "ujuno"
+                        "value": "uatom"
                     }
                 ],     
                 "accounts": [
                     {
                         "name": "acc0",
-                        "address": "juno1hj5fveer5cjtn4wd6wstzugjfdxzl0xps73ftl", 
+                        "address": "cosmos1hj5fveer5cjtn4wd6wstzugjfdxzl0xpxvjjvr", 
                         "amount": "10000000000%DENOM%",
                         "mnemonic": "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry"
-                    },
-                    {
-                        "name": "acc1",
-                        "address": "juno1efd63aw40lxf3n4mhf7dzhjkr453axurv2zdzk",
-                        "amount": "10000000000%DENOM%",
-                        "mnemonic": "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise"
                     }
-                ],
-                "startup-commands": [
-                    "%BIN% keys add example-key-after --keyring-backend test --home %HOME%"                    
-                ] 
+                ]               
             }
         }
     ]

@@ -1,0 +1,59 @@
+{    
+    "chains": [
+        {
+            "name": "gaia",
+            "chain_id": "localcosmos-1",
+            "denom": "uatom",
+            "binary": "gaiad",
+            "bech32-prefix": "cosmos",
+            "docker-image": {                
+                "version": "v9.1.0"
+            },
+            "block-time": "6s",
+            "gas-prices": "0%DENOM%",
+            "gas-adjustment": 2.0,
+            "ibc-paths": ["atom-juno", "atom-terra"],
+            "genesis": {
+                "accounts": [
+                    {
+                        "name": "acc0",
+                        "address": "cosmos1hj5fveer5cjtn4wd6wstzugjfdxzl0xpxvjjvr",
+                        "amount": "10000000%DENOM%",
+                        "mnemonic": "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry"
+                    }
+                ]
+            }            
+        },
+        {
+            "name": "juno",
+            "chain_id": "localjuno-1",
+            "binary": "junod",
+            "bech32-prefix": "juno",
+            "denom": "ujuno",
+            "docker-image": {
+                "repository": "ghcr.io/cosmoscontracts/juno-e2e",
+                "version": "v14.1.0"
+            },
+            "block-time": "2s",
+            "encoding-options": ["juno"],
+            "gas-prices": "0%DENOM%",
+            "gas-adjustment": 2.0,
+            "ibc-paths": ["atom-juno", "juno-terra"]        
+        },
+        {
+            "name": "terra",
+            "chain_id": "localterra-1",
+            "binary": "terrad",
+            "bech32-prefix": "terra",
+            "denom": "uluna",
+            "docker-image": {                
+                "version": "v2.3.4"
+            },
+            "block-time": "6s",
+            "encoding-options": ["wasm"],
+            "gas-prices": "0%DENOM%",
+            "gas-adjustment": 2.0,
+            "ibc-paths": ["atom-terra", "juno-terra"]        
+        }
+    ]
+}
