@@ -18,12 +18,12 @@ make install
 ```
 **Install on Windows**
 
-Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installing Local Interchain.
+Follow [this guide](./docs/WINDOWS.md) to setup the Windows OS environment for installing Local Interchain.
 
 ## Running
 
 - *(optional)* Edit `./configs/relayer.json`
-- Copy: `cp ./configs/chains.json ./configs/mytest1_ignored.json`
+- Copy: `cp ./configs/base_ibc.json ./configs/mytest1_ignored.json`
 - Run: `local-ic start mytest1_ignored.json`
 - Change directory `ICTEST_HOME=/root/example/local-interchain local-ic start myother_ignored.json`
 
@@ -36,6 +36,8 @@ Follow [this guide](WINDOWS.md) to setup the Windows OS environment for installi
 ## REST API
 
 A rest API can be found at `curl localhost:8080/` by default. Other actions can take place here such as file uploads, actions, querying chain config information, and more!
+
+Read more about the API [here](./docs/REST_API.md)
 
 ## Helpful Tips
 
