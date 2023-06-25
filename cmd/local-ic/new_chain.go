@@ -109,7 +109,9 @@ var newChainCmd = &cobra.Command{
 			panic(err)
 		}
 
-		os.WriteFile(filePath, bz, 0777)
+		if err = os.WriteFile(filePath, bz, 0777); err != nil {
+			panic(err)
+		}
 	},
 }
 

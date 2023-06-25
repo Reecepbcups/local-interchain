@@ -20,7 +20,9 @@ var rootCmd = &cobra.Command{
 		HiddenDefaultCmd: true,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

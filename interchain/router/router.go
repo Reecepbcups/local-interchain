@@ -50,7 +50,7 @@ func NewRouter(ctx context.Context, config *ictypes.Config, vals map[string]*cos
 func getAllMethods(r mux.Router) []Route {
 	endpoints := make([]Route, 0)
 
-	r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		tpl, err1 := route.GetPathTemplate()
 		met, err2 := route.GetMethods()
 		if err1 != nil {
@@ -67,6 +67,10 @@ func getAllMethods(r mux.Router) []Route {
 		})
 		return nil
 	})
+
+	if err != nil {
+		panic(err)
+	}
 
 	return endpoints
 }
