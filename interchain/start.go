@@ -162,8 +162,7 @@ func StartChain(installDir, chainCfgFile string) {
 	log.Println("Waiting for blocks", ttlWait, longestTTLChain.Config().ChainID)
 
 	// Do with context? https://github.com/cosmos/relayer/blob/main/cmd/start.go#L161
-
-	log.Println("\n", "REST API is running on ", fmt.Sprintf("http://%s:%s", config.Server.Host, config.Server.Port))
+	log.Println("\n", "Local-IC API is running on ", fmt.Sprintf("http://%s:%s", config.Server.Host, config.Server.Port))
 
 	if err = testutil.WaitForBlocks(ctx, ttlWait, longestTTLChain); err != nil {
 		log.Fatal("testutil.WaitForBlocks", err)

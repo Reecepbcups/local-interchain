@@ -11,8 +11,9 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 	// Fixes gas issue, public SubmitProposal, & modify genesis
-	// go get github.com/Reecepbcups/interchaintest/v7@87804b1690f0c64f7f30b9f86fea2e2058794beb
-	github.com/strangelove-ventures/interchaintest/v7 => github.com/Reecepbcups/interchaintest/v7 v7.0.0-20230623154943-87804b1690f0
+	// go get github.com/Reecepbcups/interchaintest/v7@55aeeb804e69511f9c0f1ab1db958a11101ec262
+	github.com/strangelove-ventures/interchaintest/v7 => github.com/Reecepbcups/interchaintest/v7 v7.0.0-20230628214157-55aeeb804e69
+	// github.com/strangelove-ventures/interchaintest/v7 => /home/reece/Desktop/Programming/Go/interchaintest
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
 
 )

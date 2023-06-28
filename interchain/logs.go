@@ -38,12 +38,11 @@ func DumpChainsInfoToLogs(configDir string, config *types.Config, chains []ibc.C
 			ibcPaths = []string{}
 		}
 
-		// TODO: save another log for relayer info instead?
 		log := types.LogOutput{
-			// TODO: Rest API Address?
 			ChainID:     chainObj.Config().ChainID,
 			ChainName:   chainObj.Config().Name,
 			RPCAddress:  chainObj.GetHostRPCAddress(),
+			RESTAddress: chainObj.GetHostAPIAddress(),
 			GRPCAddress: chainObj.GetHostGRPCAddress(),
 			IBCPath:     ibcPaths,
 		}
