@@ -11,8 +11,8 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 	// Fixes gas issue, public SubmitProposal, & modify genesis
-	// go get github.com/Reecepbcups/interchaintest/v7@55aeeb804e69511f9c0f1ab1db958a11101ec262
-	github.com/strangelove-ventures/interchaintest/v7 => github.com/Reecepbcups/interchaintest/v7 v7.0.0-20230628214157-55aeeb804e69
+	// go get github.com/Reecepbcups/interchaintest/v7@bfa765375700aa462a51f58c134babc73cace3e1
+	github.com/strangelove-ventures/interchaintest/v7 => github.com/Reecepbcups/interchaintest/v7 v7.0.0-20230628214456-bfa765375700
 	// github.com/strangelove-ventures/interchaintest/v7 => /home/reece/Desktop/Programming/Go/interchaintest
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
 
@@ -22,7 +22,7 @@ require (
 	// github.com/CosmWasm/wasmd v0.40.0-rc.2.0.20230519100721-8e5b1572ac46
 	// github.com/CosmosContracts/juno/v15 v15.0.0-20230522191709-aab43aae27c3
 	github.com/cosmos/cosmos-sdk v0.47.3
-	github.com/cosmos/ibc-go/v7 v7.1.0 // indirect
+	github.com/cosmos/ibc-go/v7 v7.2.0 // indirect
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230508154211-ebc1cbd6d88e
 	github.com/tyler-smith/go-bip39 v1.1.0
 	go.uber.org/zap v1.24.0
@@ -66,7 +66,7 @@ require (
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0 // indirect
 	github.com/cometbft/cometbft v0.37.2 // indirect
-	github.com/cometbft/cometbft-db v0.7.0 // indirect
+	github.com/cometbft/cometbft-db v0.8.0 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2 // indirect
@@ -119,7 +119,7 @@ require (
 	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
+	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -192,16 +192,15 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/spf13/afero v1.9.3 // indirect
+	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.15.0 // indirect
+	github.com/spf13/viper v1.16.0 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
-	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tyler-smith/go-bip32 v1.0.0 // indirect
@@ -223,10 +222,10 @@ require (
 	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.114.0 // indirect
+	google.golang.org/api v0.122.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
-	google.golang.org/grpc v1.56.0 // indirect
+	google.golang.org/grpc v1.56.1 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
@@ -250,6 +249,8 @@ require (
 
 require (
 	cosmossdk.io/log v1.1.0 // indirect
+	github.com/google/s2a-go v0.1.3 // indirect
+	github.com/linxGnu/grocksdb v1.7.16 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/rs/zerolog v1.29.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
