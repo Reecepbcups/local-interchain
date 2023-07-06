@@ -123,6 +123,18 @@ func StartChain(installDir, chainCfgFile string) {
 		logger.Fatal("ic.Build", zap.Error(err))
 	}
 
+	if relayer != nil && len(ibcpaths) > 0 {
+		paths := make([]string, 0, len(ibcpaths))
+		for k := range ibcpaths {
+			paths = append(paths, k)
+		}
+
+		relayer.StartRelayer(ctx, eRep, paths...)
+		defer func() {
+			relayer.StopRelayer(ctx, eRep)
+		}()
+	}
+
 	// keys as well?
 	vals := make(map[string]*cosmos.ChainNode)
 	for _, chain := range chains {
@@ -141,11 +153,6 @@ func StartChain(installDir, chainCfgFile string) {
 		if err := http.ListenAndServe(server, r); err != nil {
 			log.Default().Println(err)
 		}
-
-		// server := fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
-		// if err := http.ListenAndServe(server, nil); err != nil {
-		// 	log.Default().Println(err)
-		// }
 	}()
 
 	AddGenesisKeysToKeyring(ctx, config, chains)
