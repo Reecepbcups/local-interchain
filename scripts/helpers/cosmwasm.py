@@ -49,7 +49,7 @@ class CosmWasm:
 
         self.rb = RequestBuilder(self.api, self.chain_id)
 
-        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas_adjustment=2.0"
+        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
 
         # the last obtained Tx hash
         self.tx_hash = ""
@@ -109,6 +109,9 @@ class CosmWasm:
         if tx_res.RawLog and len(tx_res.RawLog) > 5:
             print(tx_res.RawLog)
 
+        if len(tx_res.TxHash) == 0:
+            print("Tx execute error", res)
+
         contract_addr = CosmWasm.get_contract_address(self.rb, tx_res.TxHash)
         print(f"[instantiate_contract] {label} {contract_addr}")
 
@@ -126,7 +129,7 @@ class CosmWasm:
             msg = json.dumps(msg, separators=(",", ":"))
 
         # TODO: self.default_flag_set fails here for some reason...
-        cmd = f"tx wasm execute {self.address} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas_adjustment=2.0"
+        cmd = f"tx wasm execute {self.address} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
         print("[execute_contract]", cmd)
         res = self.rb.binary(cmd)
         print(res)
