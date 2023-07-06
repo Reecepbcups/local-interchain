@@ -16,8 +16,8 @@ def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
 
     payload = {
         "chain_id": rb.chain_id,
-        "key-name": key_name,
-        "file-name": abs_path,
+        "key_name": key_name,
+        "file_name": abs_path,
     }
 
     url = rb.api
@@ -108,6 +108,9 @@ class CosmWasm:
         # issue, such as signature verification or lack of fees etc
         if tx_res.RawLog and len(tx_res.RawLog) > 5:
             print(tx_res.RawLog)
+
+        if len(tx_res.TxHash) == 0:
+            print("Tx execute error", res)
 
         contract_addr = CosmWasm.get_contract_address(self.rb, tx_res.TxHash)
         print(f"[instantiate_contract] {label} {contract_addr}")

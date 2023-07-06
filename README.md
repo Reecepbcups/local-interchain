@@ -51,10 +51,10 @@ Read more about the API [here](./docs/REST_API.md)
 [
   {
     "chain_id": "exampleid-1",
-    "chain-name": "example",
-    "rpc-address": "http://localhost:38829",
-    "grpc-address": "localhost:34917",
-    "ibc-paths": []
+    "chain_name": "example",
+    "rpc_address": "http://localhost:38829",
+    "grpc_address": "localhost:34917",
+    "ibc_paths": []
   }
 ]
 ```
@@ -70,11 +70,11 @@ Read more about the API [here](./docs/REST_API.md)
     "name": "juno",            
     "chain_id": "localjuno-2",
     "denom": "ujuno",
-    "docker-image": {        
+    "docker_image": {        
         "version": "v14.1.0"
     },    
-    "gas-prices": "0%DENOM%",
-    "gas-adjustment": 2.0,           
+    "gas_prices": "0%DENOM%",
+    "gas_adjustment": 2.0,           
 }
 ```
 
@@ -90,24 +90,24 @@ Here is a base chain template with every feature the configuration accepts. Acco
     "chain_id": "localjuno-1",
     "denom": "ujuno",
     "binary": "junod",
-    "bech32-prefix": "juno",
-    "docker-image": {
+    "bech32_prefix": "juno",
+    "docker_image": {
         "repository": "ghcr.io/cosmoscontracts/juno-e2e",
         "version": "v14.1.0",
-        "uid-gid": "1000:1000"
+        "uid_gid": "1000:1000"
     },
-    "chain-type": "cosmos",
-    "coin-type": 118,
-    "trusting-period": "112h",
-    "gas-prices": "0%DENOM%",
-    "gas-adjustment": 2.0,
-    "number-vals": 1,
-    "number-node": 0,
-    "blocks-ttl": -1,
-    "use-new-genesis-command": false,
-    "ibc-paths": ["juno-ibc-1"],
+    "chain_type": "cosmos",
+    "coin_type": 118,
+    "trusting_period": "112h",
+    "gas_prices": "0%DENOM%",
+    "gas_adjustment": 2.0,
+    "number_vals": 1,
+    "number_node": 0,
+    "blocks_ttl": -1,
+    "use_new_genesis_command": false,
+    "ibc_paths": ["juno-ibc-1"],
     "debugging": true,
-    "block-time": "500ms",
+    "block_time": "500ms",
     "encoding-options": ["juno"],
     "genesis": {
         "modify": [

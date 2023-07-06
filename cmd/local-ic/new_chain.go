@@ -55,8 +55,8 @@ var newChainCmd = &cobra.Command{
 				ChainID:       getOrDefault("chain_id", "local-1"),
 				Binary:        getOrDefault("App Binary", "junod"),
 				Bech32Prefix:  getOrDefault("Bech32 Prefix", "juno"),
-				GasPrices:     getOrDefault("Gas-Prices (comma seperated)", "0ujuno,0other"),
-				GasAdjustment: getOrDefault("Gas-Adjustment", 2.5),
+				GasPrices:     getOrDefault("gas_prices (comma seperated)", "0ujuno,0other"),
+				GasAdjustment: getOrDefault("gas_adjustment", 2.5),
 
 				// IBCPaths should be unique chain ids?
 				IBCPaths: parseIBCPaths(getOrDefault("IBC Paths", "")),

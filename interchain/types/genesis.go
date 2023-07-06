@@ -17,5 +17,5 @@ type Genesis struct {
 
 	// A list of commands which run after chains are good to go.
 	// May need to move out of genesis into its own section? Seems silly though.
-	StartupCommands []string `json:"startup-commands"`
+	StartupCommands []string `json:"startup_commands"`
 }

@@ -18,8 +18,8 @@ type upload struct {
 
 type Uploader struct {
 	ChainId  string `json:"chain_id"`
-	KeyName  string `json:"key-name"`
-	FileName string `json:"file-name"`
+	KeyName  string `json:"key_name"`
+	FileName string `json:"file_name"`
 }
 
 func NewUploader(ctx context.Context, vals map[string]*cosmos.ChainNode) *upload {

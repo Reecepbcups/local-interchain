@@ -22,7 +22,7 @@ class Cache:
         with open(logs_path, "r") as f:
             logs = dict(json.load(f))
 
-        return int(logs.get("start-time", -1))
+        return int(logs.get("start_time", -1))
 
     @staticmethod
     def get_cache_or_default(contracts: dict, ictest_chain_start: int) -> dict:

@@ -5,14 +5,14 @@
             "chain_id": "localcosmos-1",
             "denom": "uatom",
             "binary": "gaiad",
-            "bech32-prefix": "cosmos",
-            "docker-image": {                
+            "bech32_prefix": "cosmos",
+            "docker_image": {                
                 "version": "v9.1.0"
             },
-            "block-time": "6s",
-            "gas-prices": "0%DENOM%",
-            "gas-adjustment": 2.0,
-            "ibc-paths": ["atom-juno", "atom-terra"],
+            "block_time": "6s",
+            "gas_prices": "0%DENOM%",
+            "gas_adjustment": 2.0,
+            "ibc_paths": ["atom-juno", "atom-terra"],
             "genesis": {
                 "accounts": [
                     {
@@ -28,32 +28,32 @@
             "name": "juno",
             "chain_id": "localjuno-1",
             "binary": "junod",
-            "bech32-prefix": "juno",
+            "bech32_prefix": "juno",
             "denom": "ujuno",
-            "docker-image": {
+            "docker_image": {
                 "repository": "ghcr.io/cosmoscontracts/juno-e2e",
                 "version": "v14.1.0"
             },
-            "block-time": "2s",
+            "block_time": "2s",
             "encoding-options": ["juno"],
-            "gas-prices": "0%DENOM%",
-            "gas-adjustment": 2.0,
-            "ibc-paths": ["atom-juno", "juno-terra"]        
+            "gas_prices": "0%DENOM%",
+            "gas_adjustment": 2.0,
+            "ibc_paths": ["atom-juno", "juno-terra"]        
         },
         {
             "name": "terra",
             "chain_id": "localterra-1",
             "binary": "terrad",
-            "bech32-prefix": "terra",
+            "bech32_prefix": "terra",
             "denom": "uluna",
-            "docker-image": {                
+            "docker_image": {                
                 "version": "v2.3.4"
             },
-            "block-time": "6s",
+            "block_time": "6s",
             "encoding-options": ["wasm"],
-            "gas-prices": "0%DENOM%",
-            "gas-adjustment": 2.0,
-            "ibc-paths": ["atom-terra", "juno-terra"]        
+            "gas_prices": "0%DENOM%",
+            "gas_adjustment": 2.0,
+            "ibc_paths": ["atom-terra", "juno-terra"]        
         }
     ]
 }
