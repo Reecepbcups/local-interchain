@@ -18,7 +18,7 @@ type RestServer struct {
 type DockerImage struct {
 	Repository string `json:"repository"`
 	Version    string `json:"version"`
-	UidGid     string `json:"uid-gid"`
+	UidGid     string `json:"uid_gid"`
 }
 
 type IBCChannel struct {

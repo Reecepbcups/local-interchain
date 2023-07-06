@@ -34,7 +34,7 @@ def bin_test():
     rb.binary("keys list --output=json")
 
     rb.query("bank total")
-    exit(1)
+
     rb.query("bank balances juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0 --output=json")
 
 

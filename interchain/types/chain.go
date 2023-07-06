@@ -9,28 +9,28 @@ import (
 
 type Chain struct {
 	// ibc chain config (optional)
-	ChainType            string `json:"chain-type" validate:"min=1"`
-	CoinType             int    `json:"coin-type" validate:"gt=0"`
+	ChainType            string `json:"chain_type" validate:"min=1"`
+	CoinType             int    `json:"coin_type" validate:"gt=0"`
 	Binary               string `json:"binary" validate:"min=1"`
-	Bech32Prefix         string `json:"bech32-prefix" validate:"min=1"`
+	Bech32Prefix         string `json:"bech32_prefix" validate:"min=1"`
 	Denom                string `json:"denom" validate:"min=1"`
-	TrustingPeriod       string `json:"trusting-period" validate:"time.Duration"`
+	TrustingPeriod       string `json:"trusting_period" validate:"time.Duration"`
 	Debugging            bool   `json:"debugging"`
-	UseNewGenesisCommand bool   `json:"use-new-genesis-command"`
-	BlockTime            string `json:"block-time" validate:"time.Duration"`
+	UseNewGenesisCommand bool   `json:"use_new_genesis_command"`
+	BlockTime            string `json:"block_time" validate:"time.Duration"`
 
 	// Required
 	Name    string `json:"name" validate:"min=1"`
 	ChainID string `json:"chain_id" validate:"min=3"`
 
-	DockerImage DockerImage `json:"docker-image" validate:"url"`
+	DockerImage DockerImage `json:"docker_image" validate:"url"`
 
-	GasPrices     string   `json:"gas-prices"`
-	GasAdjustment float64  `json:"gas-adjustment"`
-	NumberVals    int      `json:"number-vals" validate:"gte=1"`
-	NumberNode    int      `json:"number-node"`
-	BlocksTTL     int      `json:"blocks-ttl"`
-	IBCPaths      []string `json:"ibc-paths"`
+	GasPrices     string   `json:"gas_prices"`
+	GasAdjustment float64  `json:"gas_adjustment"`
+	NumberVals    int      `json:"number_vals" validate:"gte=1"`
+	NumberNode    int      `json:"number_node"`
+	BlocksTTL     int      `json:"blocks_ttl"`
+	IBCPaths      []string `json:"ibc_paths"`
 	Genesis       Genesis  `json:"genesis"`
 }
 
@@ -91,6 +91,6 @@ func (chain *Chain) SetChainDefaults() {
 		panic("'denom' is required in your config for " + chain.ChainID)
 	}
 	if chain.Bech32Prefix == "" {
-		panic("'bech32-prefix' is required in your config for " + chain.ChainID)
+		panic("'bech32_prefix' is required in your config for " + chain.ChainID)
 	}
 }

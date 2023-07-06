@@ -16,8 +16,8 @@ def upload_file(rb: RequestBuilder, key_name: str, abs_path: str) -> dict:
 
     payload = {
         "chain_id": rb.chain_id,
-        "key-name": key_name,
-        "file-name": abs_path,
+        "key_name": key_name,
+        "file_name": abs_path,
     }
 
     url = rb.api
@@ -49,7 +49,7 @@ class CosmWasm:
 
         self.rb = RequestBuilder(self.api, self.chain_id)
 
-        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas-adjustment=2.0"
+        self.default_flag_set = "--home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --output=json --keyring-backend=test --gas=auto --gas_adjustment=2.0"
 
         # the last obtained Tx hash
         self.tx_hash = ""
@@ -126,7 +126,7 @@ class CosmWasm:
             msg = json.dumps(msg, separators=(",", ":"))
 
         # TODO: self.default_flag_set fails here for some reason...
-        cmd = f"tx wasm execute {self.address} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas-adjustment=2.0"
+        cmd = f"tx wasm execute {self.address} {msg} --from={account_key} --keyring-backend=test --home=%HOME% --node=%RPC% --chain-id=%CHAIN_ID% --yes --gas=auto --gas_adjustment=2.0"
         print("[execute_contract]", cmd)
         res = self.rb.binary(cmd)
         print(res)

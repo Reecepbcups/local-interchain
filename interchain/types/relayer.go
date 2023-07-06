@@ -1,8 +1,8 @@
 package types
 
 type Relayer struct {
-	DockerImage  DockerImage `json:"docker-image"`
-	StartupFlags []string    `json:"startup-flags"`
+	DockerImage  DockerImage `json:"docker_image"`
+	StartupFlags []string    `json:"startup_flags"`
 }
 
 func (r Relayer) SetRelayerDefaults() Relayer {
