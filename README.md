@@ -1,5 +1,9 @@
 # Local Interchain
 
+This program now lives upstream in the [Strangelove org here](https://github.com/strangelove-ventures/interchaintest) and is bundled with their interchain suite of products. This includes more programming languages such as bash, rust, and python drivers for TTD and easy local enviroments.
+
+---
+
 A simple way to config and run IBC local chain testing environments using [Strangelove's InterchainTest](https://github.com/strangelove-ventures/interchaintest)
 
 **This will eventually get phased out and brought into the ICTest repo directly.** Just doing it here for ease of creation & for a future simple public archive.
